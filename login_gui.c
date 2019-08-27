@@ -56,6 +56,8 @@ static GtkWidget* initWindow() {
     username_input = gtk_entry_new();
     password_label = gtk_label_new("密码");
     password_input = gtk_entry_new();
+    gtk_entry_set_visibility(GTK_ENTRY(password_input), FALSE);
+    gtk_entry_set_invisible_char(GTK_ENTRY(password_input), '*');
 
     login_button = gtk_button_new_with_label("登录");
     g_signal_connect(G_OBJECT(login_button), "clicked", G_CALLBACK(login_handle), NULL);
