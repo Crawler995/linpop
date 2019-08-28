@@ -6,6 +6,31 @@
 
 #include "register_gui.h"
 
+static gboolean password_security_pass(const gchar *password) {
+    gboolean all_number = TRUE;
+    gboolean all_lower_c = TRUE;
+    gboolean all_upper_c = TRUE;
+    gboolean length_not_enough = strlen(password) < 8;
+
+    for(int i = 0; i < strlen(password); i++) {
+        if(password[i] < '0' || password[i] > '9') {
+            all_number = FALSE;
+        }
+        if(password[i] < 'a' || password[i] > 'z') {
+            all_lower_c = FALSE;
+        }
+        if(password[i] < 'A' || password[i] > 'Z') {
+            all_upper_c = FALSE;
+        }
+    }
+
+    return !(all_number || all_lower_c || all_upper_c || length_not_enough);
+}
+
+static void save_userinfo(const gchar *username, const gchar *password) {
+    g_print("保存用户信息：账号: %s 密码: %s\n", username, password);
+}
+
 static void register_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
     const gchar *password_text = gtk_entry_get_text(GTK_ENTRY(password_input));
@@ -14,10 +39,24 @@ static void register_handle(GtkWidget *button, gpointer data) {
     g_print("账号: %s 密码: %s\n", username_text, password_text);
 
     GdkColor green = {0, 0, 0xffff, 0}, red = {0, 0xffff, 0, 0};
-    gboolean register_success = !strcmp(password_text, again_password_text);
 
-    gtk_label_set_text(GTK_LABEL(register_label), register_success ? "注册成功！" : "注册失败，请重试！");
+    gboolean password_same = !strcmp(password_text, again_password_text);
+    gboolean username_not_empty = strcmp(username_text, "");
+    gboolean security_pass = password_security_pass(password_text);
+
+    gboolean register_success = password_same && security_pass && username_not_empty;
+
+    gchar register_status_tip[30] = "注册成功！";
+    if(!username_not_empty) strcpy(register_status_tip, "用户名不能为空！");
+    else if(!password_same) strcpy(register_status_tip, "两次输入密码不一致！");
+    else if(!security_pass) strcpy(register_status_tip, "密码强度过低！");
+    
+    gtk_label_set_text(GTK_LABEL(register_label), register_status_tip);
     gtk_widget_modify_fg(register_label, GTK_STATE_NORMAL, register_success ? &green : &red);
+
+    if(register_success) {
+        save_userinfo(username_text, password_text);
+    }
 }
 
 static GtkWidget* initWindow() {
