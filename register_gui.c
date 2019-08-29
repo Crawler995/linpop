@@ -5,6 +5,7 @@
  */
 
 #include "register_gui.h"
+#include "data.h"
 
 static gboolean password_security_pass(const gchar *password) {
     gboolean all_number = TRUE;
@@ -43,11 +44,13 @@ static void register_handle(GtkWidget *button, gpointer data) {
     gboolean password_same = !strcmp(password_text, again_password_text);
     gboolean username_not_empty = strcmp(username_text, "");
     gboolean security_pass = password_security_pass(password_text);
+    gboolean username_not_exist = !find_user_in_database(username_text);
 
-    gboolean register_success = password_same && security_pass && username_not_empty;
+    gboolean register_success = password_same && security_pass && username_not_empty && username_not_exist;
 
     gchar register_status_tip[50] = "注册成功！";
     if(!username_not_empty) strcpy(register_status_tip, "用户名不能为空！");
+    else if(!username_not_exist) strcpy(register_status_tip, "用户名已存在！");
     else if(!password_same) strcpy(register_status_tip, "两次输入密码不一致！");
     else if(!security_pass) strcpy(register_status_tip, "密码强度过低！");
     
@@ -56,7 +59,7 @@ static void register_handle(GtkWidget *button, gpointer data) {
     
 
     if(register_success) {
-        save_userinfo(username_text, password_text);
+        insert_user_info_to_collection(username_text, password_text);
     }
 }
 

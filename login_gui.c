@@ -6,6 +6,7 @@
 
 #include "login_gui.h"
 #include "register_gui.h"
+#include "data.h"
 
 static void login_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
@@ -13,7 +14,7 @@ static void login_handle(GtkWidget *button, gpointer data) {
 
     g_print("账号：%s 密码：%s\n", username_text, password_text);
 
-    gboolean login_success = !strcmp(username_text, USERNAME) && !strcmp(password_text, PASSWORD);
+    gboolean login_success = verify_user_info_in_database(username_text, password_text);
     GdkColor green = {0, 0, 0xffff, 0}, red = {0, 0xffff, 0, 0};
     
     gtk_label_set_text(GTK_LABEL(login_label), login_success ? "登录成功！" : "登录失败，请重试！");
@@ -68,11 +69,16 @@ int main(int argc, char **argv) {
     program_argc = argc;
     program_argv = argv;
 
+    connect_database();
+
     gtk_init(&argc, &argv);
     GtkWidget *window = initWindow();
 
     gtk_widget_show_all(window);
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main();
+
+    destory_database_connection();
+
     return 0;
 }

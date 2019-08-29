@@ -9,9 +9,6 @@
 
 #include <gtk/gtk.h>
 
-#define USERNAME "crawler"
-#define PASSWORD "1234"
-
 static int program_argc;
 static char **program_argv;
 

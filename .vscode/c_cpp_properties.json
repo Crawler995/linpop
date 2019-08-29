@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "/usr/include/**",
                 "/usr/local/**",
-                "/usr/lib/**"
+                "/usr/lib/**",
+                "/usr/local/include/libmongoc-1.0"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
