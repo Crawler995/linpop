@@ -11,7 +11,7 @@ static void login_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
     const gchar *password_text = gtk_entry_get_text(GTK_ENTRY(password_input));
 
-    g_print("账号: %s 密码: %s\n", username_text, password_text);
+    g_print("账号：%s 密码：%s\n", username_text, password_text);
 
     gboolean login_success = !strcmp(username_text, USERNAME) && !strcmp(password_text, PASSWORD);
     GdkColor green = {0, 0, 0xffff, 0}, red = {0, 0xffff, 0, 0};

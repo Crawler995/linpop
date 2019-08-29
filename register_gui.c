@@ -28,7 +28,7 @@ static gboolean password_security_pass(const gchar *password) {
 }
 
 static void save_userinfo(const gchar *username, const gchar *password) {
-    g_print("保存用户信息：账号: %s 密码: %s\n", username, password);
+    g_print("注册成功：账号：%s 密码：%s\n", username, password);
 }
 
 static void register_handle(GtkWidget *button, gpointer data) {
@@ -36,7 +36,7 @@ static void register_handle(GtkWidget *button, gpointer data) {
     const gchar *password_text = gtk_entry_get_text(GTK_ENTRY(password_input));
     const gchar *again_password_text = gtk_entry_get_text(GTK_ENTRY(again_password_input));
 
-    g_print("账号: %s 密码: %s\n", username_text, password_text);
+    g_print("账号：%s 密码：%s\n", username_text, password_text);
 
     GdkColor green = {0, 0, 0xffff, 0}, red = {0, 0xffff, 0, 0};
 
@@ -46,13 +46,14 @@ static void register_handle(GtkWidget *button, gpointer data) {
 
     gboolean register_success = password_same && security_pass && username_not_empty;
 
-    gchar register_status_tip[30] = "注册成功！";
+    gchar register_status_tip[50] = "注册成功！";
     if(!username_not_empty) strcpy(register_status_tip, "用户名不能为空！");
     else if(!password_same) strcpy(register_status_tip, "两次输入密码不一致！");
     else if(!security_pass) strcpy(register_status_tip, "密码强度过低！");
     
     gtk_label_set_text(GTK_LABEL(register_label), register_status_tip);
     gtk_widget_modify_fg(register_label, GTK_STATE_NORMAL, register_success ? &green : &red);
+    
 
     if(register_success) {
         save_userinfo(username_text, password_text);
