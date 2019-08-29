@@ -7,14 +7,12 @@
 #ifndef DATA_H
 #define DATA_H
 
-#define APP_NAME "linpop"
 #define DB_NAME "linpop_database"
 #define USER_INFO_COLLECTION "user_info"
 
 #include <mongoc/mongoc.h>
 #include <gtk/gtk.h>
 
-static mongoc_uri_t *uri;
 static mongoc_client_t *client;
 static mongoc_database_t *database;
 static mongoc_collection_t *collection;
