@@ -69,12 +69,13 @@ int main(int argc, char **argv) {
     program_argc = argc;
     program_argv = argv;
 
-    connect_database();
-
     gtk_init(&argc, &argv);
     GtkWidget *window = initWindow();
 
     gtk_widget_show_all(window);
+
+    connect_database();
+
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main();
 
