@@ -12,6 +12,9 @@
 static int program_argc;
 static char **program_argv;
 
+const char *user_name;
+
+
 static GtkWidget *layout;
 static GtkWidget *login_label;
 static GtkWidget *username_label;

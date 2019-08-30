@@ -19,7 +19,6 @@ static GtkWidget *again_password_label;
 static GtkWidget *again_password_input;
 static GtkWidget *register_button;
 
-static void save_userinfo(const gchar *username, const gchar *password);
 static gboolean password_security_pass(const gchar *password);
 static void register_handle(GtkWidget *button, gpointer data);
 static GtkWidget* initWindow();

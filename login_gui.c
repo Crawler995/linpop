@@ -7,6 +7,7 @@
 #include "login_gui.h"
 #include "register_gui.h"
 #include "data.h"
+#include "network.h"
 
 static void login_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
@@ -19,6 +20,11 @@ static void login_handle(GtkWidget *button, gpointer data) {
     
     gtk_label_set_text(GTK_LABEL(login_label), login_success ? "登录成功！" : "登录失败，请重试！");
     gtk_widget_modify_fg(login_label, GTK_STATE_NORMAL, login_success ? &green : &red);
+
+    if(!login_success) return;
+    
+    user_name = username_text;
+    set_user_ip_address(get_self_ip_address());
 }
 
 static void register_handle(GtkWidget *button, gpointer data) {
