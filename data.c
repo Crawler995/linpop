@@ -7,6 +7,7 @@
 #include "data.h"
 #include "network.h"
 #include "login_gui.h"
+#include "string_linked_list.h"
 
 void connect_database() {
     mongoc_init();
@@ -114,7 +115,7 @@ const char* get_user_ip_address(const char *username) {
     }
 }
 
-void get_user_friend_list() {
+string_node* get_user_friend_list() {
     bson_t *query = BCON_NEW("username", user_name);
     const char *opt_string = "{\"projection\":{\"friend_list\":1, \"_id\": 0}}";
     bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
@@ -122,7 +123,7 @@ void get_user_friend_list() {
     const bson_t *doc;
     char *str;
 
-    char **res;
+    string_node *head = create_string_node(NULL);
 
     while (mongoc_cursor_next (cursor, &doc)) {
         // str = bson_as_canonical_extended_json (doc, NULL);
@@ -138,15 +139,20 @@ void get_user_friend_list() {
             bson_t *list = bson_new_from_data(arr, len);
             bson_iter_t fit;
             bson_iter_init(&fit, list);
+
             while(bson_iter_next(&fit)) {
                 uint32_t len;
                 printf("%s ", bson_iter_utf8(&fit, &len));
+
+                append_string_node(head, bson_iter_utf8(&fit, &len));
             }
         }
     }
 
     bson_destroy(query);
     mongoc_cursor_destroy (cursor);
+
+    return head;
 }
 
 void add_user_friend_list(const char *friend_username) {

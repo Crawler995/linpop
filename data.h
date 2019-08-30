@@ -12,6 +12,7 @@
 
 #include <mongoc/mongoc.h>
 #include <gtk/gtk.h>
+#include "string_linked_list.h"
 
 static mongoc_client_t *client;
 static mongoc_database_t *database;
@@ -26,7 +27,7 @@ gboolean find_user_in_database(const char *username);
 void set_user_ip_address(const char *ip);
 const char* get_user_ip_address(const char *username);
 
-void get_user_friend_list();
+string_node* get_user_friend_list();
 void add_user_friend_list(const char *friend_username);
 
 void destory_database_connection();
