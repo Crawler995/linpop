@@ -18,6 +18,7 @@ void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
 
     
     gtk_tree_store_append(treestore, &child, &toplevel_set[tree_number]);
+    strcpy(group[tree_number], textc);
     char n[50];
     strcpy(n, textc);
     strcat(n, get_user_is_online(textc) ? "（在线）" : "（离线）");
@@ -25,8 +26,8 @@ void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
 
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_friend1),&start,&end);
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_friend2),&start1,&end1);
-    printf("g %d %s\n", tree_number, group[tree_number - 1]);
-    add_user_friend_list(textc, group[tree_number - 1]);
+    printf("g %d %s\n", tree_number, group[tree_number]);
+    add_user_friend_list(textc, group[tree_number]);
 }
 
 void creat_new_firend()
@@ -119,27 +120,6 @@ static GtkTreeModel *create_and_fill_model (void)
 {
     
     treestore = gtk_tree_store_new(NUM_COLS,G_TYPE_STRING);
-    
-    //gtk_tree_store_append(treestore, & toplevel_set[0], NULL);
-    
-    // gtk_tree_store_set(treestore, & toplevel_set[0],COLUMN, "tree 1",-1);
-    
-    
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    // gtk_tree_store_set(treestore, &child, COLUMN, "friend1 in tree1", -1);
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    // gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree1",-1);
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    // gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree1",-1);
-    
-    // gtk_tree_store_append(treestore, &toplevel_set[1], NULL);
-    // gtk_tree_store_set(treestore, &toplevel_set[1], COLUMN, "tree 2", -1);
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    // gtk_tree_store_set(treestore, &child,COLUMN, "friend1 in tree2", -1);
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    // gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree2", -1);
-    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    // gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree2",-1);
     return GTK_TREE_MODEL(treestore);
 }
  
