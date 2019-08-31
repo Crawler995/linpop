@@ -18,7 +18,7 @@ void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
 
     
     gtk_tree_store_append(treestore, &child, &toplevel_set[tree_number]);
-    strcpy(group[tree_number], textc);
+
     char n[50];
     strcpy(n, textc);
     strcat(n, get_user_is_online(textc) ? "（在线）" : "（离线）");
@@ -75,7 +75,7 @@ void button_add_tree_sure_clicked(GtkWidget *widgt,gpointer *date){
 
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_tree),&start,&end);
 
-    strcpy(group[tree - 1], textc);
+    strcpy(group[tree], textc);
 }
 
 
@@ -218,7 +218,7 @@ static void init_friend_list() {
     int i, j, a = 0;
     while(p) {
         
-        printf("%s %s %s\n", p->name, p->group, p->is_online ? "o" : "n");
+        printf("%s %s \n", p->name, p->group);
         int exist = 0;
 
         for(i = 0; i < a; i++) {
