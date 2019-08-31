@@ -8,7 +8,7 @@
 #include "register_gui.h"
 #include "data.h"
 #include "network.h"
-#include "string_linked_list.h"
+#include "friend_linked_list.h"
 #include <stdbool.h>
 
 static void login_handle(GtkWidget *button, gpointer data) {
@@ -30,15 +30,16 @@ static void login_handle(GtkWidget *button, gpointer data) {
 
     set_user_online(true);
 
-    // add_user_friend_list("ccccc");
-    // add_user_friend_list("ccc");
+    // add_user_friend_list("zql");
+    // add_user_friend_list("cjx");
 
-    // string_node *friend_list_head = get_user_friend_list(), *p = friend_list_head->next;
+    // friend_node *friend_list_head = get_user_friend_list(), *p = friend_list_head->next;
+    // printf("好友列表：\n");
     // while(p) {
-    //     printf("%s\n", p->string);
+    //     printf("%s %s\n", p->name, p->ip);
     //     p = p->next;
     // }
-    // delete_string_linked_list(friend_list_head);
+    // delete_friend_linked_list(friend_list_head);
 }
 
 static void register_handle(GtkWidget *button, gpointer data) {

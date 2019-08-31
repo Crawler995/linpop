@@ -7,7 +7,7 @@
 #include "data.h"
 #include "network.h"
 #include "login_gui.h"
-#include "string_linked_list.h"
+#include "friend_linked_list.h"
 
 void connect_database() {
     mongoc_init();
@@ -100,23 +100,20 @@ const char* get_user_ip_address(const char *username) {
     const char *opt_string = "{\"projection\":{\"ip_address\":1, \"_id\": 0}}";
     bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
     mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(collection, query, opt, NULL);
-    const bson_t *doc;
+    bson_t *doc;
     char *str;
 
     while (mongoc_cursor_next (cursor, &doc)) {
         bson_iter_t it;
         bson_iter_init(&it, doc);
-        uint8_t *arr;
+        uint32_t len;
         if(bson_iter_find(&it, "ip_address")) {
-            bson_destroy(query);
-            mongoc_cursor_destroy (cursor);
-            uint32_t len;
             return bson_iter_utf8(&it, &len);
         }
-    }
+    } 
 }
 
-string_node* get_user_friend_list() {
+friend_node* get_user_friend_list() {
     bson_t *query = BCON_NEW("username", user_name);
     const char *opt_string = "{\"projection\":{\"friend_list\":1, \"_id\": 0}}";
     bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
@@ -124,7 +121,7 @@ string_node* get_user_friend_list() {
     const bson_t *doc;
     char *str;
 
-    string_node *head = create_string_node(NULL);
+    friend_node *head = create_friend_node(NULL, NULL, false);
 
     while (mongoc_cursor_next (cursor, &doc)) {
         bson_iter_t it;
@@ -140,25 +137,34 @@ string_node* get_user_friend_list() {
 
             while(bson_iter_next(&fit)) {
                 uint32_t len;
+                const char *friend_name = bson_iter_utf8(&fit, &len);
+                const char *friend_ip = get_user_ip_address(friend_name);
+                bool friend_is_online = get_user_is_online(friend_name);
 
-                append_string_node(head, bson_iter_utf8(&fit, &len));
+                append_friend_node(head, friend_name, friend_ip, friend_is_online);
             }
         }
     }
 
+    bson_destroy(opt);
+    bson_destroy(doc);
     bson_destroy(query);
     mongoc_cursor_destroy (cursor);
 
     return head;
 }
 
-void add_user_friend_list(const char *friend_username) {
+bool add_user_friend_list(const char *friend_username) {
+    if(!find_user_in_database(friend_username)) {
+        return false;
+    }
+
     bson_t *doc;
     doc = bson_new();
     const bson_t child;
 
     BSON_APPEND_ARRAY_BEGIN(doc, "friend_list", &child);
-    string_node *head = get_user_friend_list(), *p = head->next;
+    friend_node *head = get_user_friend_list(), *p = head->next;
 
     uint32_t i = 0;
     char buf[16];
@@ -167,7 +173,7 @@ void add_user_friend_list(const char *friend_username) {
 
     while(p) {
         keylen = bson_uint32_to_string (i, &key, buf, sizeof buf);
-        bson_append_utf8(&child, key, (int) keylen, p->string, -1);
+        bson_append_utf8(&child, key, (int) keylen, p->name, -1);
         p = p->next;
         i++;
     }
@@ -185,7 +191,9 @@ void add_user_friend_list(const char *friend_username) {
     bson_destroy(query);
     bson_destroy(update);
 
-    delete_string_linked_list(head);
+    delete_friend_linked_list(head);
+
+    return true;
 }
 
 bool get_user_is_online(const char *username) {
@@ -206,6 +214,10 @@ bool get_user_is_online(const char *username) {
             return bson_iter_bool(&it);
         }
     }
+
+    bson_destroy(query);
+    bson_destroy(opt);
+    mongoc_cursor_destroy(cursor);
 }
 
 void set_user_online(bool online) {
