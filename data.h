@@ -30,6 +30,9 @@ const char* get_user_ip_address(const char *username);
 string_node* get_user_friend_list();
 void add_user_friend_list(const char *friend_username);
 
+bool get_user_is_online(const char *username);
+void set_user_online(bool online);
+
 void destory_database_connection();
 
 #endif

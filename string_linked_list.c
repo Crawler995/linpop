@@ -1,9 +1,16 @@
+/*
+ * Author: 张青龙
+ * Date: 2019/8/29
+ * 
+ */
+
 #include "string_linked_list.h"
 
 string_node* create_string_node(char *string) {
     string_node *node = (string_node*)malloc(sizeof(string_node));
     node->string = string;
     node->len = 0;
+    node->next = NULL;
 
     return node;
 }

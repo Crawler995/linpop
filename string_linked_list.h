@@ -1,3 +1,9 @@
+/*
+ * Author: 张青龙
+ * Date: 2019/8/29
+ * 
+ */
+
 #ifndef STRING_LINKED_LIST_H
 #define STRING_LINKED_LIST_H
 

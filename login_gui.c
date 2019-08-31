@@ -9,6 +9,7 @@
 #include "data.h"
 #include "network.h"
 #include "string_linked_list.h"
+#include <stdbool.h>
 
 static void login_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
@@ -27,11 +28,17 @@ static void login_handle(GtkWidget *button, gpointer data) {
     user_name = username_text;
     set_user_ip_address(get_self_ip_address());
 
-    string_node *friend_list_head = get_user_friend_list(), *p = friend_list_head->next;
-    while(p) {
-        printf("%s\n", p->string);
-        p = p->next;
-    }
+    set_user_online(true);
+
+    // add_user_friend_list("ccccc");
+    // add_user_friend_list("ccc");
+
+    // string_node *friend_list_head = get_user_friend_list(), *p = friend_list_head->next;
+    // while(p) {
+    //     printf("%s\n", p->string);
+    //     p = p->next;
+    // }
+    // delete_string_linked_list(friend_list_head);
 }
 
 static void register_handle(GtkWidget *button, gpointer data) {

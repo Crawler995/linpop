@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "gtk.h": "c",
-        "ifaddrs.h": "c"
+        "ifaddrs.h": "c",
+        "array": "c"
     }
 }
