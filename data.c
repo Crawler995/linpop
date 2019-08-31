@@ -12,7 +12,8 @@
 void connect_database() {
     mongoc_init();
     const char *cloud_mongo_uri = "mongodb+srv://crawler995:crawler995@crawler-x83be.mongodb.net/test?retryWrites=true&w=majority";
-    client = mongoc_client_new("mongodb://localhost:27017/?appname=linpop_database");
+    const char *local_mongo_uri = "mongodb://localhost:27017/?appname=linpop_database";
+    client = mongoc_client_new(local_mongo_uri);
     database = mongoc_client_get_database(client, DB_NAME);
     collection = mongoc_client_get_collection (client, DB_NAME, USER_INFO_COLLECTION);
 }
@@ -33,6 +34,7 @@ void insert_user_info_to_collection(const char *username, const char *password) 
     bson_append_array_end(doc, &child);
 
     BSON_APPEND_UTF8(doc, "ip_address", "");
+    BSON_APPEND_UTF8(doc, "group", "");
     BSON_APPEND_BOOL(doc, "is_online", false);
 
     mongoc_collection_insert_one(collection, doc, NULL, NULL, &error);
@@ -113,6 +115,35 @@ const char* get_user_ip_address(const char *username) {
     } 
 }
 
+const char *get_user_group(const char *username) {
+    int i, j;
+    int copy = 0;
+    char *res = (char*)malloc(sizeof(char) * 50);
+    for(i = 0; i < strlen(username); i++) {
+        if(username[i] == '|') {
+            copy = 1;
+            j = 0;
+            continue;
+        }
+        if(!copy) continue;
+        *(res + j) = username[i];
+        j++;
+    }
+    *(res + j) = '\0';
+    return res;
+}
+
+const char* get_correct_name(const char *friend_name) {
+    int i;
+    char *res = (char*)malloc(sizeof(char) * 50);
+    for(i = 0; i < strlen(friend_name); i++) {
+        if(friend_name[i] == '|') break;
+        *(res + i) = friend_name[i];
+    }
+    *(res + i) = '\0';
+    return res;
+}
+
 friend_node* get_user_friend_list() {
     bson_t *query = BCON_NEW("username", user_name);
     const char *opt_string = "{\"projection\":{\"friend_list\":1, \"_id\": 0}}";
@@ -121,7 +152,7 @@ friend_node* get_user_friend_list() {
     const bson_t *doc;
     char *str;
 
-    friend_node *head = create_friend_node(NULL, NULL, false);
+    friend_node *head = create_friend_node(NULL, NULL, false, NULL);
 
     while (mongoc_cursor_next (cursor, &doc)) {
         bson_iter_t it;
@@ -137,11 +168,12 @@ friend_node* get_user_friend_list() {
 
             while(bson_iter_next(&fit)) {
                 uint32_t len;
-                const char *friend_name = bson_iter_utf8(&fit, &len);
+                const char *friend_name = get_correct_name(bson_iter_utf8(&fit, &len));
                 const char *friend_ip = get_user_ip_address(friend_name);
                 bool friend_is_online = get_user_is_online(friend_name);
+                const char *group = get_user_group(bson_iter_utf8(&fit, &len));
 
-                append_friend_node(head, friend_name, friend_ip, friend_is_online);
+                append_friend_node(head, friend_name, friend_ip, friend_is_online, group);
             }
         }
     }
@@ -154,7 +186,7 @@ friend_node* get_user_friend_list() {
     return head;
 }
 
-bool add_user_friend_list(const char *friend_username) {
+bool add_user_friend_list(const char *friend_username, const char *group) {
     if(!find_user_in_database(friend_username)) {
         return false;
     }
@@ -173,12 +205,26 @@ bool add_user_friend_list(const char *friend_username) {
 
     while(p) {
         keylen = bson_uint32_to_string (i, &key, buf, sizeof buf);
-        bson_append_utf8(&child, key, (int) keylen, p->name, -1);
+
+        char _name[50];
+        strcpy(_name, p->name);
+        char _group[50];
+        strcpy(_group, p->group);
+        strcat(_name, "|");
+        strcat(_name, _group);
+
+        bson_append_utf8(&child, key, (int) keylen, _name, -1);
         p = p->next;
         i++;
     }
     keylen = bson_uint32_to_string (i++, &key, buf, sizeof buf);
-    bson_append_utf8(&child, key, (int) keylen, friend_username, -1);
+    char _name[50];
+    strcpy(_name, friend_username);
+    char _group[50];
+    strcpy(_group, group);
+    strcat(_name, "|");
+    strcat(_name, _group);
+    bson_append_utf8(&child, key, (int) keylen, _name, -1);
 
     bson_append_array_end(doc, &child);
     
@@ -208,7 +254,7 @@ bool get_user_is_online(const char *username) {
         bson_iter_t it;
         bson_iter_init(&it, doc);
         uint8_t *arr;
-        if(bson_iter_find(&it, "ip_address")) {
+        if(bson_iter_find(&it, "is_online")) {
             bson_destroy(query);
             mongoc_cursor_destroy (cursor);
             return bson_iter_bool(&it);

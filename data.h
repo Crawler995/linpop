@@ -27,8 +27,11 @@ gboolean find_user_in_database(const char *username);
 void set_user_ip_address(const char *ip);
 const char* get_user_ip_address(const char *username);
 
+const char* get_user_group(const char *username);
+const char* get_correct_name(const char *friend_name);
+
 friend_node* get_user_friend_list();
-bool add_user_friend_list(const char *friend_username);
+bool add_user_friend_list(const char *friend_username, const char *group);
 
 bool get_user_is_online(const char *username);
 void set_user_online(bool online);

@@ -7,11 +7,12 @@
 #include "friend_linked_list.h"
 #include "stdbool.h"
 
-friend_node* create_friend_node(const char *friend_name, const char *friend_ip, bool friend_is_online) {
+friend_node* create_friend_node(const char *friend_name, const char *friend_ip, bool friend_is_online, const char *group) {
     friend_node *node = (friend_node*)malloc(sizeof(friend_node));
     node->name = friend_name;
     node->ip = friend_ip;
     node->is_online = friend_is_online;
+    node->group = group;
 
     node->next = NULL;
 
@@ -36,10 +37,10 @@ void delete_friend_linked_list(friend_node *head) {
     }
 }
 
-void append_friend_node(friend_node *head, const char *friend_name, const char *friend_ip, bool friend_is_online) {
+void append_friend_node(friend_node *head, const char *friend_name, const char *friend_ip, bool friend_is_online, const char *group) {
     while(head->next) {
         head = head->next;
     }
 
-    head->next = create_friend_node(friend_name, friend_ip, friend_is_online);
+    head->next = create_friend_node(friend_name, friend_ip, friend_is_online, group);
 }

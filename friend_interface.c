@@ -1,36 +1,5 @@
-#include<gtk/gtk.h>
-#include<stdlib.h>
-GtkTextBuffer *buffer_input_friend1;
-GtkTextBuffer *buffer_input_friend2;
-GtkTextBuffer *buffer_input_tree;
-GtkTreeViewColumn *col;
-GtkCellRenderer *renderer;
-
-GtkTreeModel *model;
-GtkTreeStore *treestore;
-GtkTreeIter toplevel;
-static  GtkWidget  *window;
-static GtkWidget *view;
-static GtkWidget *vbox;
-static GtkTreeSelection *selection;
-static GtkWidget *statusbar;
-static GtkWidget *head_button;
-static GtkWidget *button_head;
-GtkTreeStore *treestore;
-GtkTreeIter child;
-
-GtkTreeIter  toplevel_set[10];
-int tree=1;
-
-
-
-
-enum
-{
-    COLUMN = 0,
-    NUM_COLS
-} ;
-
+#include "friend_interface.h"
+#include "data.h"
 
 void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
    gchar *textc;
@@ -48,19 +17,20 @@ void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
     tree_number=atoi(textc1);
 
     
-    gtk_tree_store_append(treestore, &child, &toplevel_set[tree_number-1]);
-    gtk_tree_store_set(treestore, &child,COLUMN, textc,-1);
+    gtk_tree_store_append(treestore, &child, &toplevel_set[tree_number]);
+    char n[50];
+    strcpy(n, textc);
+    strcat(n, get_user_is_online(textc) ? "（在线）" : "（离线）");
+    gtk_tree_store_set(treestore, &child,COLUMN, n,-1);
 
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_friend1),&start,&end);
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_friend2),&start1,&end1);
+    printf("g %d %s\n", tree_number, group[tree_number - 1]);
+    add_user_friend_list(textc, group[tree_number - 1]);
 }
 
 void creat_new_firend()
 {}
-
-
-
-
 
 void button_add_friend_clicked(){
 
@@ -103,6 +73,8 @@ void button_add_tree_sure_clicked(GtkWidget *widgt,gpointer *date){
     gtk_tree_store_set(treestore, &toplevel_set[tree] ,COLUMN,textc,-1);   
 
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input_tree),&start,&end);
+
+    strcpy(group[tree - 1], textc);
 }
 
 
@@ -148,26 +120,26 @@ static GtkTreeModel *create_and_fill_model (void)
     
     treestore = gtk_tree_store_new(NUM_COLS,G_TYPE_STRING);
     
-    gtk_tree_store_append(treestore, & toplevel_set[0], NULL);
+    //gtk_tree_store_append(treestore, & toplevel_set[0], NULL);
     
-    gtk_tree_store_set(treestore, & toplevel_set[0],COLUMN, "tree 1",-1);
+    // gtk_tree_store_set(treestore, & toplevel_set[0],COLUMN, "tree 1",-1);
     
     
-    gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    gtk_tree_store_set(treestore, &child, COLUMN, "friend1 in tree1", -1);
-    gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree1",-1);
-    gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
-    gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree1",-1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
+    // gtk_tree_store_set(treestore, &child, COLUMN, "friend1 in tree1", -1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
+    // gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree1",-1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[0]);
+    // gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree1",-1);
     
-    gtk_tree_store_append(treestore, &toplevel_set[1], NULL);
-    gtk_tree_store_set(treestore, &toplevel_set[1], COLUMN, "tree 2", -1);
-    gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    gtk_tree_store_set(treestore, &child,COLUMN, "friend1 in tree2", -1);
-    gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree2", -1);
-    gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
-    gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree2",-1);
+    // gtk_tree_store_append(treestore, &toplevel_set[1], NULL);
+    // gtk_tree_store_set(treestore, &toplevel_set[1], COLUMN, "tree 2", -1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
+    // gtk_tree_store_set(treestore, &child,COLUMN, "friend1 in tree2", -1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
+    // gtk_tree_store_set(treestore, &child,COLUMN, "friend2 in tree2", -1);
+    // gtk_tree_store_append(treestore, &child, &toplevel_set[1]);
+    // gtk_tree_store_set(treestore, &child,COLUMN, "friend3 in tree2",-1);
     return GTK_TREE_MODEL(treestore);
 }
  
@@ -207,13 +179,7 @@ GtkWidget * create_image_button(const char *image_path)
 }
  
 
-
-
- int main ( int argc ,char **argv){ //?
- 
-  
-    gtk_init(&argc,&argv);
-
+static void init_window() {
     window=gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);//出现时位于显示器中部
     gtk_window_set_title(GTK_WINDOW(window),"linpop from 54 ");
@@ -246,8 +212,6 @@ GtkWidget * create_image_button(const char *image_path)
 
      
        //左上头像
-     
-
     button_head=gtk_button_new_with_label("touxiang ");
     button_head=create_image_button(  "1.jpg");
     gtk_fixed_put(GTK_FIXED(fixed_head), button_head, 10,30);  //buttons position
@@ -258,21 +222,78 @@ GtkWidget * create_image_button(const char *image_path)
     gtk_fixed_put(GTK_FIXED(fixed_head),button_add_friend , 220,170);
     g_signal_connect(G_OBJECT(button_add_tree), "clicked",  G_CALLBACK(button_add_tree_clicked), NULL);
     g_signal_connect(G_OBJECT(button_add_friend), "clicked",  G_CALLBACK(button_add_friend_clicked), NULL);
-    GtkWidget * label_name=gtk_label_new("name");
+    GtkWidget * label_name=gtk_label_new(user_name);
     gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 160,30);
     gtk_widget_set_size_request(label_name,10,40);
-    GtkWidget * label_signature=gtk_label_new("signature**********");  //yinggai huanhangh
+    GtkWidget * label_signature=gtk_label_new(user_ip);  //yinggai huanhangh
     gtk_label_set_line_wrap(GTK_LABEL(label_signature),TRUE);
     gtk_fixed_put(GTK_FIXED(fixed_head), label_signature, 160,80);
     gtk_widget_set_size_request(label_signature,10,40);
     gtk_container_add(GTK_CONTAINER(window),fixed_head);
-    g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+}
+
+static void init_friend_list() {
+    friend_node *head = get_user_friend_list(), *p = head->next;
+    
+    int i, j, a = 0;
+    while(p) {
+        
+        printf("%s %s %s\n", p->name, p->group, p->is_online ? "o" : "n");
+        int exist = 0;
+
+        for(i = 0; i < a; i++) {
+            if(!strcmp(p->group, group[i])) {
+                exist = 1;
+                break;
+            }
+        }
+        if(exist) {
+            p = p->next;
+            continue;
+        }
+        else {
+            strcpy(group[a++], p->group);
+        }
+
+        gtk_tree_store_append(treestore, &toplevel_set[tree], NULL);
+        gtk_tree_store_set(treestore, &toplevel_set[tree] ,COLUMN,p->group,-1); 
+
+        tree++;
+        p = p->next;
+    }
+
+    p = head->next;
+
+    while(p) {
+        int i;
+        for(i = 0; i < a; i++) {
+            if(!strcmp(p->group, group[i])) {
+                break;
+            }
+        }
+        
+        gtk_tree_store_append(treestore, &child, &toplevel_set[i]);
+        char n[50];
+        strcpy(n, p->name);
+        strcat(n, p->is_online ? "（在线）" : "（离线）");
+        gtk_tree_store_set(treestore, &child,COLUMN, n,-1);
+        
+        p = p->next;
+    }
+
+    delete_friend_linked_list(head);
+}
+
+void create_friend_interface ( int argc ,char **argv) {
+    gtk_init(&argc,&argv);
+
+    init_window();
     gtk_widget_show_all(window);
+
+    init_friend_list();
+    g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_main();
-    
-return 0;
 
-    
-
-     
+    set_user_online(false);
+    destory_database_connection();
  }

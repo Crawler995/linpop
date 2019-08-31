@@ -13,6 +13,7 @@ static int program_argc;
 static char **program_argv;
 
 const char *user_name;
+const char *user_ip;
 
 
 static GtkWidget *layout;
