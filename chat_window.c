@@ -51,7 +51,8 @@ static void *recv_message_server(void *fd)
 		if(strcmp(buf , exit_message) == 0)
 		{
 			printf("Client closed.\n");
-			close(sockfd);
+            send(connfd, exit_message, strlen(exit_message), 0);
+			close(connfd);
             continue_recv_message = false;
             gdk_threads_enter();
             gtk_widget_destroy(window);

@@ -300,6 +300,7 @@ static void listen_others_talk_request() {
         const char *friend_name = get_self_is_requested_talked();
         if(friend_name) {
             printf("%s call you\n", friend_name);
+            //create_chat_window(global_login_user_name, friend_name, get_user_ip_address(friend_name), false);
 
             listening = false;
         }
