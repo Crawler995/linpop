@@ -16,6 +16,7 @@ void connect_database() {
     client = mongoc_client_new(local_mongo_uri);
     database = mongoc_client_get_database(client, DB_NAME);
     collection = mongoc_client_get_collection (client, DB_NAME, USER_INFO_COLLECTION);
+    talk_collection = mongoc_client_get_collection (client, DB_NAME, TALK_COLLECTION);
 }
 
 void insert_user_info_to_collection(const char *username, const char *password) {
@@ -272,6 +273,170 @@ void set_user_online(bool online) {
     bson_error_t error;
     mongoc_collection_update_one(collection, query, update, NULL, NULL, &error);
 
+    bson_destroy(query);
+    bson_destroy(update);
+}
+
+const char* get_self_is_requested_talked() {
+    bson_t *query = BCON_NEW("talk", "default");
+    const char *opt_string = "{\"projection\":{\"talk_list\":1, \"_id\": 0}}";
+    bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
+    mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(talk_collection, query, opt, NULL);
+    const bson_t *doc;
+    char *str;
+
+    while (mongoc_cursor_next (cursor, &doc)) {
+        bson_iter_t it;
+        bson_iter_init(&it, doc);
+        uint8_t *arr;
+        if(bson_iter_find(&it, "talk_list")) {
+            uint32_t len;
+            const uint8_t *arr;
+            bson_iter_array(&it, &len, &arr);
+            bson_t *list = bson_new_from_data(arr, len);
+            bson_iter_t fit;
+            bson_iter_init(&fit, list);
+
+            while(bson_iter_next(&fit)) {
+                uint32_t len;
+                const char *per_talk = bson_iter_utf8(&fit, &len);
+                const char *is_requested_talk_user = get_user_group(per_talk);
+
+                if(!strcmp(is_requested_talk_user, user_name)) {
+                    return get_correct_name(per_talk);
+                }
+            }
+        }
+    }
+
+    bson_destroy(opt);
+    bson_destroy(doc);
+    bson_destroy(query);
+    mongoc_cursor_destroy (cursor);
+
+    return NULL;
+}
+
+void add_talk_request(const char *friend_name) {
+    bson_t *doc;
+    doc = bson_new();
+    const bson_t child;
+
+    BSON_APPEND_ARRAY_BEGIN(doc, "talk_list", &child);
+
+    uint32_t i = 0;
+    char buf[16];
+    const char *key;
+    size_t keylen;
+
+    bson_t *query = BCON_NEW("talk", "default");
+    const char *opt_string = "{\"projection\":{\"talk_list\":1, \"_id\": 0}}";
+    bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
+    mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(talk_collection, query, opt, NULL);
+    const bson_t *doc1;
+    char *str;
+
+    while (mongoc_cursor_next (cursor, &doc1)) {
+        bson_iter_t it;
+        bson_iter_init(&it, doc1);
+        uint8_t *arr;
+        if(bson_iter_find(&it, "talk_list")) {
+            uint32_t len;
+            const uint8_t *arr;
+            bson_iter_array(&it, &len, &arr);
+            bson_t *list = bson_new_from_data(arr, len);
+            bson_iter_t fit;
+            bson_iter_init(&fit, list);
+
+            while(bson_iter_next(&fit)) {
+                keylen = bson_uint32_to_string (i, &key, buf, sizeof buf);
+                uint32_t len;
+                const char *per_talk = bson_iter_utf8(&fit, &len);
+
+                bson_append_utf8(&child, key, (int) keylen, per_talk, -1);
+                i++;
+            }
+            
+        }
+    }
+
+    keylen = bson_uint32_to_string (i++, &key, buf, sizeof buf);
+    char _name[50];
+    strcpy(_name, user_name);
+    char _group[50];
+    strcpy(_group, friend_name);
+    strcat(_name, "|");
+    strcat(_name, _group);
+    bson_append_utf8(&child, key, (int) keylen, _name, -1);
+
+    bson_append_array_end(doc, &child);
+
+    bson_t *update = BCON_NEW("$set", "{", "talk_list", BCON_ARRAY(&child), "}");
+
+    mongoc_collection_update_one(talk_collection, query, update, NULL, NULL, NULL);
+
+    bson_destroy(doc);
+    bson_destroy(doc1);
+    bson_destroy(query);
+    bson_destroy(update);
+}
+
+void delete_talk_request(const char *request_user_name) {
+    bson_t *doc;
+    doc = bson_new();
+    const bson_t child;
+
+    char talk_record[50];
+    strcpy(talk_record, request_user_name);
+    strcat(talk_record, "|");
+    strcat(talk_record, user_name);
+
+    BSON_APPEND_ARRAY_BEGIN(doc, "talk_list", &child);
+
+    uint32_t i = 0;
+    char buf[16];
+    const char *key;
+    size_t keylen;
+
+    bson_t *query = BCON_NEW("talk", "default");
+    const char *opt_string = "{\"projection\":{\"talk_list\":1, \"_id\": 0}}";
+    bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
+    mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(talk_collection, query, opt, NULL);
+    const bson_t *doc1;
+    char *str;
+
+    while (mongoc_cursor_next (cursor, &doc1)) {
+        bson_iter_t it;
+        bson_iter_init(&it, doc1);
+        uint8_t *arr;
+        if(bson_iter_find(&it, "talk_list")) {
+            uint32_t len;
+            const uint8_t *arr;
+            bson_iter_array(&it, &len, &arr);
+            bson_t *list = bson_new_from_data(arr, len);
+            bson_iter_t fit;
+            bson_iter_init(&fit, list);
+
+            while(bson_iter_next(&fit)) {
+                keylen = bson_uint32_to_string (i, &key, buf, sizeof buf);
+                uint32_t len;
+                const char *per_talk = bson_iter_utf8(&fit, &len);
+                if(!strcmp(per_talk, talk_record)) continue;
+                bson_append_utf8(&child, key, (int) keylen, per_talk, -1);
+                i++;
+            }
+        }
+    }
+
+
+    bson_append_array_end(doc, &child);
+
+    bson_t *update = BCON_NEW("$set", "{", "talk_list", BCON_ARRAY(&child), "}");
+
+    mongoc_collection_update_one(talk_collection, query, update, NULL, NULL, NULL);
+
+    bson_destroy(doc);
+    bson_destroy(doc1);
     bson_destroy(query);
     bson_destroy(update);
 }

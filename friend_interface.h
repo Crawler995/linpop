@@ -1,6 +1,7 @@
 #include<gtk/gtk.h>
 #include<stdlib.h>
 #include "login_gui.h"
+#include <stdbool.h>
 
 GtkTextBuffer *buffer_input_friend1;
 GtkTextBuffer *buffer_input_friend2;
@@ -24,6 +25,8 @@ GtkTreeIter child;
 GtkTreeIter  toplevel_set[10];
 static int tree=0;
 static char group[20][50];
+static bool listening = true;
+
 enum
 {
     COLUMN = 0,

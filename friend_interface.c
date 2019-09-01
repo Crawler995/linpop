@@ -1,5 +1,6 @@
 #include "friend_interface.h"
 #include "data.h"
+#include <pthread.h>
 
 void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
    gchar *textc;
@@ -264,6 +265,23 @@ static void init_friend_list() {
     delete_friend_linked_list(head);
 }
 
+static void listen_others_talk_request() {
+    while(listening) {
+        const char *friend_name = get_self_is_requested_talked();
+        if(friend_name) {
+            printf("%s\n", friend_name);
+
+            delete_talk_request(friend_name);
+            listening = false;
+        }
+        sleep(1);
+    }
+}
+
+static void setNotListen() {
+    listening = false;
+}
+
 void create_friend_interface ( int argc ,char **argv) {
     gtk_init(&argc,&argv);
 
@@ -271,7 +289,14 @@ void create_friend_interface ( int argc ,char **argv) {
     gtk_widget_show_all(window);
 
     init_friend_list();
+    //add_talk_request("wgx");
+
+    pthread_t listen_id;
+    pthread_create(&listen_id, NULL, listen_others_talk_request, NULL);
+
     g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect (G_OBJECT(window), "destroy", G_CALLBACK(setNotListen), NULL);
+
     gtk_main();
 
     set_user_online(false);

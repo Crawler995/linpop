@@ -9,6 +9,7 @@
 
 #define DB_NAME "linpop_database"
 #define USER_INFO_COLLECTION "user_info"
+#define TALK_COLLECTION "talk_list"
 
 #include <mongoc/mongoc.h>
 #include <gtk/gtk.h>
@@ -16,7 +17,7 @@
 
 static mongoc_client_t *client;
 static mongoc_database_t *database;
-static mongoc_collection_t *collection;
+static mongoc_collection_t *collection, *talk_collection;
 
 void connect_database();
 
@@ -35,6 +36,10 @@ bool add_user_friend_list(const char *friend_username, const char *group);
 
 bool get_user_is_online(const char *username);
 void set_user_online(bool online);
+
+const char* get_self_is_requested_talked();
+void add_talk_request(const char *friend_name);
+void delete_talk_request(const char *request_user_name);
 
 void destory_database_connection();
 
