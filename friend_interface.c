@@ -1,5 +1,6 @@
 #include "friend_interface.h"
 #include "data.h"
+#include "chat_window.h"
 #include <pthread.h>
 
 void button_add_friend_sure_clicked(GtkWidget *widgt,gpointer *date){
@@ -102,15 +103,29 @@ void button_add_tree_clicked(){
 
 
 
-void  on_changed(GtkWidget *widget, gpointer statusbar)
+void on_changed   (GtkTreeView *treeview,
+                      GtkTreePath *path,
+                      GtkTreeViewColumn *col,
+                      gpointer userdata)
 {
-    GtkTreeIter iter;
     GtkTreeModel *model;
-    char *value;
-    if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(widget), &model, &iter)) {
-        gtk_tree_model_get(model, &iter, COLUMN, &value,  -1);
-        gtk_statusbar_push(GTK_STATUSBAR(statusbar), gtk_statusbar_get_context_id(GTK_STATUSBAR(statusbar),value), value);
-        g_free(value);
+    GtkTreeIter iter;
+    model = gtk_tree_view_get_model(treeview);
+
+    if (gtk_tree_model_get_iter(model, &iter, path))
+    {
+        gchar *name;
+        gtk_tree_model_get(model, &iter, COLUMN, &name, -1);
+         
+        char real_name[50];
+        strcpy(real_name, name);
+
+        real_name[strlen(real_name) - 12] = '\0';
+        add_talk_request(real_name);
+
+        g_free(name);
+
+        create_chat_window(global_login_user_name, real_name, get_user_ip_address(real_name), true);
     }
 }
 
@@ -190,6 +205,8 @@ static void init_window() {
     gtk_box_pack_start(GTK_BOX(vbox), view, TRUE, TRUE, 1);
     statusbar = gtk_statusbar_new();
     gtk_box_pack_start(GTK_BOX(vbox), statusbar, FALSE, TRUE, 1);    //liebiao
+    gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
+    g_signal_connect(view, "row-activated",G_CALLBACK(on_changed), NULL); 
 
      
        //左上头像
@@ -269,7 +286,7 @@ static void listen_others_talk_request() {
     while(listening) {
         const char *friend_name = get_self_is_requested_talked();
         if(friend_name) {
-            printf("%s\n", friend_name);
+            printf("%s call you\n", friend_name);
 
             delete_talk_request(friend_name);
             listening = false;

@@ -1,3 +1,6 @@
+#ifndef FRIEND_INTERFACE_H
+#define FRIEND_INTERFACE_H
+
 #include<gtk/gtk.h>
 #include<stdlib.h>
 #include "login_gui.h"
@@ -34,3 +37,5 @@ enum
 } ;
 
 void create_friend_interface(int argc ,char **argv);
+
+#endif

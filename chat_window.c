@@ -2,22 +2,37 @@
 #include<stdlib.h>
 #include<gtk/gtk.h>
 #include<string.h>
-#include"config.h"
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include "chat_window.h"
 
-GtkTextBuffer*buffer_input;
-GtkTextBuffer*buffer_output;
-GtkWidget*fixed;
-GtkWidget *create_window;
-gchar *text;
-gchar user_id[50];
+const int MAX_LINE = 2048;
+const int PORT = 6001;
+const int BACKLOG = 10;
+const int LISTENQ = 6666;
+const int MAX_CONNECT = 20;
+
+// GtkTextBuffer*buffer_input;
+// GtkTextBuffer*buffer_output;
+// GtkWidget*fixed;
+// GtkWidget *create_window;
+// gchar *text;
+// gchar user_id[50];
 
 
-int sockfd;
-int connfd;
-static GtkWidget* create_frame_chat_window(gchar*user_id);
+// int sockfd;
+// int connfd;
+// static GtkWidget* create_frame_chat_window(gchar*user_id);
 static void *recv_message_server(void *fd)
 {
-	int sockfd = *(int *)fd;
+	sockfd = *(int *)fd;
 	while(1)
 	{
 		char buf[MAX_LINE];
@@ -37,12 +52,13 @@ static void *recv_message_server(void *fd)
 			exit(1);
 		}//if
 		printf("\nClient: %s\n", buf);
+        append_friend_message_record_frame(_friend_name, buf);
 	}//while
 }
 
 static void *recv_message_client(void *fd)
 {
-	int sockfd = *(int *)fd;
+	sockfd = *(int *)fd;
 	while(1)
 	{
 		char buf[MAX_LINE];
@@ -62,6 +78,7 @@ static void *recv_message_client(void *fd)
 			exit(0);
 		}//if
 		printf("\nServer: %s\n", buf);
+        append_friend_message_record_frame(_friend_name, buf);
 	}//while
 }
 
@@ -105,12 +122,6 @@ static void server_chat_frame()
 	}//if
 	/*(5) 接受客户请求，并创建线程处理*/
 	clilen = sizeof(cliaddr);
-
-    GtkWidget*window=create_frame_chat_window(user_id);
-    gtk_widget_show_all(window);
-    server_chat_frame();
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    gtk_main();
 
 	if((connfd = accept(listenfd , (struct sockaddr *)&cliaddr , &clilen)) < 0)
 	{
@@ -176,11 +187,12 @@ static void client_chat_frame()
     bzero(&servaddr , sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    if(inet_pton(AF_INET , "10.194.131.59" , &servaddr.sin_addr) < 0)
+    if(inet_pton(AF_INET , "127.0.0.1" , &servaddr.sin_addr) < 0)
     {
         printf("inet_pton error for \n");
         exit(1);
     }//if
+    
     /*(3) 发送链接服务器请求*/
     if( connect(sockfd , (struct sockaddr *)&servaddr , sizeof(servaddr)) < 0)
     {
@@ -222,25 +234,48 @@ static void button_ok_close(GtkWidget *widget,gpointer*data)
 {
     gtk_widget_destroy(create_window);
 }
-static void button_event_send(GtkWidget *wiget,GtkWidget *user_id)
-{
+
+static void append_self_message_record_frame(const gchar *message) {
+    GtkTextIter end;
+    gtk_text_buffer_get_end_iter(buffer_output, &end);
+
     gchar *space="              ";
-    gchar *user_name=user_id;
     gchar *user_says=" says:\n";
     gchar *wrap="\n\n";
+
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,user_id,strlen(user_id)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,user_says,strlen(user_says));
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,space,strlen(space)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,message,strlen(message)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,wrap,strlen(wrap)); 
+}
+
+static void append_friend_message_record_frame(const char *friend_name, const char *message) {
+    GtkTextIter end;
+    gtk_text_buffer_get_end_iter(buffer_output, &end);
+
+    gchar *space="              ";
+    gchar *user_says=" says:\n";
+    gchar *wrap="\n\n";
+
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,friend_name,strlen(friend_name)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,user_says,strlen(user_says));
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,space,strlen(space)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,message,strlen(message)); 
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,wrap,strlen(wrap)); 
+}
+
+static void button_event_send(GtkWidget *wiget,GtkWidget *user_id)
+{
     GtkTextIter start,end;
     gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(buffer_input),&start,&end);/*获得缓冲区开始和结束位置的Iter*/
     const GtkTextIter s=start,e=end;
     text=gtk_text_buffer_get_text(GTK_TEXT_BUFFER(buffer_input),&s,&e,FALSE);/*获得文本框缓冲区文本*/
     gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input),&start,&end);
+
     if(strcmp(text,"\0"))
     {
-        gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(buffer_output),&start,&end);
-        gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&start,user_name,strlen(user_name)); 
-        gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&start,user_says,strlen(user_says));
-        gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&start,space,strlen(space)); 
-        gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&start,text,strlen(text)); 
-        gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&start,wrap,strlen(wrap)); 
+        append_self_message_record_frame(text);
         g_print("%s\n",text);
     }
     else{
@@ -264,8 +299,8 @@ static void button_event_send(GtkWidget *wiget,GtkWidget *user_id)
 static void button_event_cancel(GtkWidget *widget,gpointer*data)
 {
     GtkTextIter start,end;
-    gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(buffer_output),&start,&end);
-    gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_output),&start,&end);
+    gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(buffer_input),&start,&end);
+    gtk_text_buffer_delete(GTK_TEXT_BUFFER(buffer_input),&start,&end);
 }
 static void text_input()
 {
@@ -301,7 +336,15 @@ static void button_send_cancel(gchar *user_id)
     static GtkWidget *button_send,*button_cancel;
     button_send=gtk_button_new_with_label("SEND");
     g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(button_event_send), user_id);//confirm
-    g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(server_send), NULL);
+
+    if(_is_server) {
+        g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(server_send), NULL);
+    }
+    else {
+        g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(client_send), NULL);
+    }
+
+
     button_cancel=gtk_button_new_with_label("CANCEL");
     g_signal_connect(G_OBJECT(button_cancel), "clicked", G_CALLBACK(button_event_cancel), NULL);//cancel
     gtk_fixed_put(GTK_FIXED(fixed), button_send, 0,0);
@@ -371,9 +414,33 @@ static GtkWidget* create_frame_chat_window(gchar*user_id)
     return window;
 
 }
-int main(int argc,char *argv[])
-{    
-    gtk_init(&argc,&argv);
-    gets(user_id);
-    server_chat_frame();
+
+void create_chat_window(const char *self_name, const char *friend_name, const char *friend_ip, bool is_server) {
+    gdk_threads_init();
+    gtk_init(1 , NULL);
+    strcpy(user_id, self_name);
+    _is_server = is_server;
+    _friend_name = friend_name;
+    _friend_ip = friend_ip;
+
+
+    if(is_server) {
+        pthread_t server_thread;
+        pthread_create(&server_thread, NULL, server_chat_frame, NULL);
+        //server_chat_frame();
+        GtkWidget*window=create_frame_chat_window(friend_name);
+        gtk_widget_show_all(window);
+        g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+        gtk_main();
+        
+    }
+    else {
+        client_chat_frame();
+        GtkWidget*window=create_frame_chat_window(friend_name);
+        gtk_widget_show_all(window);
+        g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+        gtk_main();
+        
+    }
+
 }
