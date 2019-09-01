@@ -26,7 +26,7 @@ static void login_handle(GtkWidget *button, gpointer data) {
 
     if(!login_success) return;
     
-    user_name = username_text;
+    global_login_user_name = username_text;
     user_ip = get_self_ip_address();
     set_user_ip_address(user_ip);
 

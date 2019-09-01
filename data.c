@@ -89,7 +89,7 @@ gboolean find_user_in_database(const char *username) {
 }
 
 void set_user_ip_address(const char *ip) {
-    bson_t *query = BCON_NEW("username", user_name);
+    bson_t *query = BCON_NEW("username", global_login_user_name);
     bson_t *update = BCON_NEW("$set", "{", "ip_address", BCON_UTF8(ip), "}");
 
     mongoc_collection_update_one(collection, query, update, NULL, NULL, NULL);
@@ -146,7 +146,7 @@ const char* get_correct_name(const char *friend_name) {
 }
 
 friend_node* get_user_friend_list() {
-    bson_t *query = BCON_NEW("username", user_name);
+    bson_t *query = BCON_NEW("username", global_login_user_name);
     const char *opt_string = "{\"projection\":{\"friend_list\":1, \"_id\": 0}}";
     bson_t *opt = bson_new_from_json((const uint8_t*)opt_string, -1, NULL);
     mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(collection, query, opt, NULL);
@@ -229,7 +229,7 @@ bool add_user_friend_list(const char *friend_username, const char *group) {
 
     bson_append_array_end(doc, &child);
     
-    bson_t *query = BCON_NEW("username", user_name);
+    bson_t *query = BCON_NEW("username", global_login_user_name);
     bson_t *update = BCON_NEW("$set", "{", "friend_list", BCON_ARRAY(&child), "}");
 
     mongoc_collection_update_one(collection, query, update, NULL, NULL, NULL);
@@ -268,7 +268,7 @@ bool get_user_is_online(const char *username) {
 }
 
 void set_user_online(bool online) {
-    bson_t *query = BCON_NEW("username", user_name);
+    bson_t *query = BCON_NEW("username", global_login_user_name);
     bson_t *update = BCON_NEW("$set", "{", "is_online", BCON_BOOL(online), "}");
     bson_error_t error;
     mongoc_collection_update_one(collection, query, update, NULL, NULL, &error);
@@ -302,7 +302,7 @@ const char* get_self_is_requested_talked() {
                 const char *per_talk = bson_iter_utf8(&fit, &len);
                 const char *is_requested_talk_user = get_user_group(per_talk);
 
-                if(!strcmp(is_requested_talk_user, user_name)) {
+                if(!strcmp(is_requested_talk_user, global_login_user_name)) {
                     return get_correct_name(per_talk);
                 }
             }
@@ -362,7 +362,7 @@ void add_talk_request(const char *friend_name) {
 
     keylen = bson_uint32_to_string (i++, &key, buf, sizeof buf);
     char _name[50];
-    strcpy(_name, user_name);
+    strcpy(_name, global_login_user_name);
     char _group[50];
     strcpy(_group, friend_name);
     strcat(_name, "|");
@@ -389,7 +389,7 @@ void delete_talk_request(const char *request_user_name) {
     char talk_record[50];
     strcpy(talk_record, request_user_name);
     strcat(talk_record, "|");
-    strcat(talk_record, user_name);
+    strcat(talk_record, global_login_user_name);
 
     BSON_APPEND_ARRAY_BEGIN(doc, "talk_list", &child);
 

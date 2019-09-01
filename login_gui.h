@@ -12,7 +12,7 @@
 static int program_argc;
 static char **program_argv;
 
-const char *user_name;
+const char *global_login_user_name;
 const char *user_ip;
 
 

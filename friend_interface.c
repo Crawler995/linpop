@@ -203,7 +203,7 @@ static void init_window() {
     gtk_fixed_put(GTK_FIXED(fixed_head),button_add_friend , 220,170);
     g_signal_connect(G_OBJECT(button_add_tree), "clicked",  G_CALLBACK(button_add_tree_clicked), NULL);
     g_signal_connect(G_OBJECT(button_add_friend), "clicked",  G_CALLBACK(button_add_friend_clicked), NULL);
-    GtkWidget * label_name=gtk_label_new(user_name);
+    GtkWidget * label_name=gtk_label_new(global_login_user_name);
     gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 160,30);
     gtk_widget_set_size_request(label_name,10,40);
     GtkWidget * label_signature=gtk_label_new(user_ip);  //yinggai huanhangh
