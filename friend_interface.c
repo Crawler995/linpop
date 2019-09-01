@@ -121,11 +121,24 @@ void on_changed   (GtkTreeView *treeview,
         strcpy(real_name, name);
 
         real_name[strlen(real_name) - 12] = '\0';
-        add_talk_request(real_name);
 
+        bool create_server = true;
+        // 先发起会话的人作为服务器
+        // 如果，你点击的这个朋友恰好之前向你发起了会话，那么你自己就是客户端
+        // 否则就是服务器
+        const char *request_user = get_self_is_requested_talked();
+        printf("re: %s; self: %s\n", request_user, real_name);
+        if(!request_user) {
+            add_talk_request(real_name);
+        }
+        else if(!strcmp(request_user, real_name)) {
+            delete_talk_request(real_name);
+            create_server = false;
+        }
+        
         g_free(name);
-
-        create_chat_window(global_login_user_name, real_name, get_user_ip_address(real_name), true);
+        
+        create_chat_window(global_login_user_name, real_name, get_user_ip_address(real_name), create_server);
     }
 }
 
@@ -288,7 +301,6 @@ static void listen_others_talk_request() {
         if(friend_name) {
             printf("%s call you\n", friend_name);
 
-            delete_talk_request(friend_name);
             listening = false;
         }
         sleep(1);

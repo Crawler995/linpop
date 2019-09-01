@@ -25,9 +25,14 @@ static gchar user_id[50];
 static bool _is_server;
 static const char *_friend_name;
 static const char *_friend_ip;
+static bool continue_recv_message;
 
-int sockfd;
-int connfd;
+static int listenfd ;
+static int sockfd;
+static int connfd;
+
+static const char *exit_message;
+static void stop_connection();
 
 static GtkWidget* create_frame_chat_window(gchar*user_id);
 

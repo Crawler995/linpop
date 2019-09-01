@@ -19,21 +19,24 @@ const int BACKLOG = 10;
 const int LISTENQ = 6666;
 const int MAX_CONNECT = 20;
 
-// GtkTextBuffer*buffer_input;
-// GtkTextBuffer*buffer_output;
-// GtkWidget*fixed;
-// GtkWidget *create_window;
-// gchar *text;
-// gchar user_id[50];
+static void stop_connection() {
+    if(!continue_recv_message) return;
 
+    printf("try stop\n");
+    if(_is_server) {
+        send(connfd, exit_message, strlen(exit_message), 0);
+    }
+    else {
+        send(sockfd, exit_message, strlen(exit_message), 0);
+    }
 
-// int sockfd;
-// int connfd;
-// static GtkWidget* create_frame_chat_window(gchar*user_id);
+    
+}
+
 static void *recv_message_server(void *fd)
 {
 	sockfd = *(int *)fd;
-	while(1)
+	while(continue_recv_message)
 	{
 		char buf[MAX_LINE];
 		memset(buf , 0 , MAX_LINE);
@@ -45,21 +48,30 @@ static void *recv_message_server(void *fd)
 		}//if
 		buf[n] = '\0';		
 		//若收到的是exit字符，则代表退出通信
-		if(strcmp(buf , "byebye.") == 0)
+		if(strcmp(buf , exit_message) == 0)
 		{
 			printf("Client closed.\n");
 			close(sockfd);
-			exit(1);
+            continue_recv_message = false;
+            gdk_threads_enter();
+            gtk_widget_destroy(window);
+            gdk_threads_leave();
+            pthread_exit(NULL);
+            return;
+			//exit(1);
 		}//if
 		printf("\nClient: %s\n", buf);
+        gdk_threads_enter();
         append_friend_message_record_frame(_friend_name, buf);
+        gdk_threads_leave();
 	}//while
+    close(sockfd);
 }
 
 static void *recv_message_client(void *fd)
 {
 	sockfd = *(int *)fd;
-	while(1)
+	while(continue_recv_message)
 	{
 		char buf[MAX_LINE];
 		memset(buf , 0 , MAX_LINE);
@@ -71,21 +83,32 @@ static void *recv_message_client(void *fd)
 		}//if
 		buf[n] = '\0';
 		//若收到的是exit字符，则代表退出通信
-		if(strcmp(buf , "byebye.") == 0)
+		if(strcmp(buf , exit_message) == 0)
 		{
 			printf("Server is closed.\n");
+            send(sockfd, exit_message, strlen(exit_message), 0);
 			close(sockfd);
-			exit(0);
+            continue_recv_message = false;
+            gdk_threads_enter();
+            gtk_widget_destroy(window);
+            gdk_threads_leave();
+            pthread_exit(NULL);
+            return;
+			//exit(0);
 		}//if
 		printf("\nServer: %s\n", buf);
+        gdk_threads_enter();
         append_friend_message_record_frame(_friend_name, buf);
+        gdk_threads_leave();
 	}//while
+
+    close(sockfd);
 }
 
 static void server_chat_frame()
 {
     //声明套接字
-	int listenfd ;
+
 	socklen_t clilen;
 	//声明线程ID
 	pthread_t recv_tid , send_tid;
@@ -146,14 +169,17 @@ static void server_send()
     strcpy(msg,text);
     if(strcmp(msg,"\0")!=0)	
 	{	
-		if(strcmp(msg , "exit\n") == 0)
+		if(strcmp(msg , exit_message) == 0)
 		{
 			printf("byebye.\n");
-			memset(msg , 0 , MAX_LINE);
-			strcpy(msg , "byebye.");
+			// memset(msg , 0 , MAX_LINE);
+			// strcpy(msg , "byebye.");
 			send(connfd , msg , strlen(msg) , 0);
 			close(connfd);
-			exit(0);
+			//exit(0);
+            gdk_threads_enter();
+            gtk_main_quit();
+            gdk_threads_leave();
 		}//if
 		if(send(connfd , msg , strlen(msg) , 0) == -1)
 		{
@@ -214,14 +240,17 @@ static void client_send()
     strcpy(msg,text);
 	if(strcmp(msg,"\0")!=0)	
 	{
-		if(strcmp(msg , "exit\n") == 0)
+		if(strcmp(msg , exit_message) == 0)
 		{
 			printf("byebye.\n");
-			memset(msg , 0 , MAX_LINE);
-			strcpy(msg , "byebye.");
+			// memset(msg , 0 , MAX_LINE);
+			// strcpy(msg , "byebye.");
 			send(sockfd , msg , strlen(msg) , 0);
 			close(sockfd);
-			exit(0);
+            gdk_threads_enter();
+            gtk_main_quit();
+            gdk_threads_leave();
+			//exit(0);
 		}//if
 		if(send(sockfd , msg , strlen(msg) , 0) == -1)
 		{
@@ -422,23 +451,32 @@ void create_chat_window(const char *self_name, const char *friend_name, const ch
     _is_server = is_server;
     _friend_name = friend_name;
     _friend_ip = friend_ip;
+    continue_recv_message = true;
 
-
+    exit_message = "b|y|e\n";
+    
     if(is_server) {
-        pthread_t server_thread;
-        pthread_create(&server_thread, NULL, server_chat_frame, NULL);
+        // pthread_t server_thread;
+        // pthread_create(&server_thread, NULL, server_chat_frame, NULL);
+        printf("server\n");
+        g_thread_create((GThreadFunc)server_chat_frame, NULL, FALSE, NULL);
         //server_chat_frame();
-        GtkWidget*window=create_frame_chat_window(friend_name);
+        window=create_frame_chat_window(friend_name);
         gtk_widget_show_all(window);
         g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+        g_signal_connect(window, "delete_event", G_CALLBACK(stop_connection), NULL);
+        
         gtk_main();
         
     }
     else {
+        printf("client\n");
         client_chat_frame();
-        GtkWidget*window=create_frame_chat_window(friend_name);
+        window=create_frame_chat_window(friend_name);
         gtk_widget_show_all(window);
         g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+        g_signal_connect(window, "delete_event", G_CALLBACK(stop_connection), NULL);
+        
         gtk_main();
         
     }
