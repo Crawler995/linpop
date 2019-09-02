@@ -24,6 +24,7 @@ static GtkWidget *head_button;
 static GtkWidget *button_head;
 GtkTreeStore *treestore;
 GtkTreeIter child;
+static GtkWidget * sb_calls_self_label;
 
 GtkTreeIter  toplevel_set[10];
 static int tree=0;

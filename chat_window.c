@@ -67,16 +67,22 @@ static void *recv_message_server(void *fd)
 			//exit(1);
 		}//if
         else if(strcmp(buf, recv_file_message) == 0) {
-            const char *save_file_url = "./ccc.docx";
+            const char *save_file_url = "../ccc.jpg";
             FILE *file = fopen(save_file_url, "wb");
+            if(!file) {
+                printf("open save error\n");
+            }
             char buf[MAX_LINE];
+            memset(buf, 0, MAX_LINE);
             int count;
 
             while((count = recv(sockfd, buf, MAX_LINE, 0)) > 0) {
                 if(strcmp(buf, finish_recv_file_message) == 0) {
+                    printf("recv finish\n");
                     break;
                 }
                 fwrite(buf, count, 1, file);
+                memset(buf, 0, MAX_LINE);
             }
 
             fclose(file);
@@ -120,13 +126,15 @@ static void *recv_message_client(void *fd)
 			//exit(0);
 		}//if
         else if(strcmp(buf, recv_file_message) == 0) {
-            const char *save_file_url = "../ccc.docx";
+            const char *save_file_url = "../ccc.jpg";
             FILE *file = fopen(save_file_url, "wb");
             char buf[MAX_LINE];
+            memset(buf, 0, MAX_LINE);
             int count;
 
             while((count = recv(sockfd, buf, MAX_LINE, 0)) > 0) {
                 if(strcmp(buf, finish_recv_file_message) == 0) {
+                    printf("recv finish\n");
                     break;
                 }
                 fwrite(buf, count, 1, file);
@@ -407,7 +415,8 @@ static void text_output()
 
 static void button_send_file_callback(GtkWidget *widget,gpointer*data) {
     printf("open file\n");
-    const char *file_url = "./项目文档.docx";
+    const char *file_url = "../bg.jpg";
+    
 
     FILE *file = fopen(file_url, "rb");
     if(!file) {
@@ -415,22 +424,29 @@ static void button_send_file_callback(GtkWidget *widget,gpointer*data) {
         return;
     }
     char buf[MAX_LINE];
+    memset(buf, 0, MAX_LINE);
     strcpy(buf, recv_file_message);
     if(_is_server) {
         send(connfd, buf, MAX_LINE, 0);
+        memset(buf, 0, MAX_LINE);
         int count;
         while((count = fread(buf, 1, MAX_LINE, file)) > 0) {
             send(connfd, buf, MAX_LINE, 0);
+            memset(buf, 0, MAX_LINE);
         }
+
         strcpy(buf, finish_recv_file_message);
         send(connfd, buf, MAX_LINE, 0);
     }
     else {
         send(sockfd, buf, MAX_LINE, 0);
+        memset(buf, 0, MAX_LINE);
         int count;
         while((count = fread(buf, 1, MAX_LINE, file)) > 0) {
             send(sockfd, buf, MAX_LINE, 0);
+            memset(buf, 0, MAX_LINE);
         }
+
         strcpy(buf, finish_recv_file_message);
         send(sockfd, buf, MAX_LINE, 0);
     }
@@ -463,6 +479,7 @@ static void button_send_cancel(gchar *user_id)
     g_signal_connect(G_OBJECT(button_send_file), "clicked", G_CALLBACK(button_send_file_callback), NULL);//cancel
     gtk_fixed_put(GTK_FIXED(fixed), button_send_file, 0,0);
     gtk_fixed_move(GTK_FIXED(fixed), button_send_file, 350, 800);
+
 }
 
 static GtkWidget * create_imagetext_hbox(const char *image_path)
@@ -494,18 +511,25 @@ static GtkWidget * create_image_button(const char *image_path)
 
 static void right_label()
 {
-    GtkWidget *label=gtk_label_new("This is for id  adress");
-    gtk_fixed_put(GTK_FIXED(fixed),label,700,400);
+    GtkWidget *label=gtk_label_new("friend IP address:");
+    gtk_fixed_put(GTK_FIXED(fixed),label,700,300);
+    GtkWidget *label_ip=gtk_label_new(_friend_ip);
+    gtk_fixed_put(GTK_FIXED(fixed),label_ip,700,350);
 }
 
 static void top_label(gchar*user_id)
 {
     GtkWidget*  top_label_button=create_image_button("1.jpg");
-    GtkWidget* label_top=gtk_label_new(user_id);
+    GtkWidget* label_top=gtk_label_new("");
+    char a[100] = "<span foreground='black' font_desc='26'>";
+    strcat(a, _friend_name);
+    strcat(a, "</span>");
+    gtk_label_set_markup(GTK_LABEL(label_top), a);
+
     gtk_widget_set_size_request(GTK_BUTTON(top_label_button),60,60);
     //g_signal_connect(G_OBJECT(top_label_button), "clicked", G_CALLBACK(personal information), NULL);
     gtk_fixed_put(GTK_FIXED(fixed),top_label_button,20,10);
-    gtk_fixed_put(GTK_FIXED(fixed),label_top,150,30);
+    gtk_fixed_put(GTK_FIXED(fixed),label_top,130,20);
 }
 
 static GtkWidget* create_frame_chat_window(gchar*user_id)

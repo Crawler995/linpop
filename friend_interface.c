@@ -191,7 +191,7 @@ GtkWidget * create_image_button(const char *image_path)
 static void init_window() {
     window=gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);//出现时位于显示器中部
-    gtk_window_set_title(GTK_WINDOW(window),"linpop from 54 ");
+    gtk_window_set_title(GTK_WINDOW(window),"linpop");
     gtk_widget_set_size_request(window,300,700);
     gtk_window_set_resizable(GTK_WINDOW(window),FALSE);
     GtkWidget *fixed_head=gtk_fixed_new();
@@ -233,12 +233,18 @@ static void init_window() {
     gtk_fixed_put(GTK_FIXED(fixed_head),button_add_friend , 220,170);
     g_signal_connect(G_OBJECT(button_add_tree), "clicked",  G_CALLBACK(button_add_tree_clicked), NULL);
     g_signal_connect(G_OBJECT(button_add_friend), "clicked",  G_CALLBACK(button_add_friend_clicked), NULL);
+
     GtkWidget * label_name=gtk_label_new(global_login_user_name);
-    gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 160,30);
+    gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 120,30);
     gtk_widget_set_size_request(label_name,10,40);
+
+    sb_calls_self_label=gtk_label_new("now nobody calls you.");
+    gtk_fixed_put(GTK_FIXED(fixed_head), sb_calls_self_label, 120,50);
+    gtk_widget_set_size_request(sb_calls_self_label,10,40);
+
     GtkWidget * label_signature=gtk_label_new(user_ip);  //yinggai huanhangh
     gtk_label_set_line_wrap(GTK_LABEL(label_signature),TRUE);
-    gtk_fixed_put(GTK_FIXED(fixed_head), label_signature, 160,80);
+    gtk_fixed_put(GTK_FIXED(fixed_head), label_signature, 120,80);
     gtk_widget_set_size_request(label_signature,10,40);
     gtk_container_add(GTK_CONTAINER(window),fixed_head);
 }
@@ -295,12 +301,27 @@ static void init_friend_list() {
     delete_friend_linked_list(head);
 }
 
+static void button_ok_close(GtkWidget *widget,gpointer*data)
+{
+    gtk_widget_destroy(create_window);
+}
+
 static void listen_others_talk_request() {
     while(listening) {
         const char *friend_name = get_self_is_requested_talked();
         if(friend_name) {
             printf("%s call you\n", friend_name);
             //create_chat_window(global_login_user_name, friend_name, get_user_ip_address(friend_name), false);
+            gdk_threads_enter();
+
+            char tip[50];
+            strcpy(tip, friend_name);
+            strcat(tip, " calls you!");
+            gtk_label_set_text(GTK_LABEL(sb_calls_self_label), tip);
+            GdkColor red = {0, 0xffff, 0, 0};
+            gtk_widget_modify_fg(GTK_WIDGET(sb_calls_self_label), GTK_STATE_NORMAL, &red);
+            
+            gdk_threads_leave();
 
             listening = false;
         }
@@ -313,6 +334,7 @@ static void setNotListen() {
 }
 
 void create_friend_interface ( int argc ,char **argv) {
+    gdk_threads_init();
     gtk_init(&argc,&argv);
 
     init_window();
@@ -322,7 +344,7 @@ void create_friend_interface ( int argc ,char **argv) {
     //add_talk_request("wgx");
 
     pthread_t listen_id;
-    pthread_create(&listen_id, NULL, listen_others_talk_request, NULL);
+    g_thread_create((GThreadFunc)listen_others_talk_request, NULL, FALSE, NULL);
 
     g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect (G_OBJECT(window), "destroy", G_CALLBACK(setNotListen), NULL);
