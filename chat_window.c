@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include "chat_window.h"
+#include "talk_record.h"
 
 const int MAX_LINE = 2048;
 const int PORT = 6001;
@@ -320,8 +321,8 @@ static void append_self_message_record_frame(const gchar *message) {
     GtkTextIter end;
     gtk_text_buffer_get_end_iter(buffer_output, &end);
 
-    gchar *space="              ";
-    gchar *user_says=" says:\n";
+    gchar *space="    ";
+    gchar *user_says=" :\n";
     gchar *wrap="\n\n";
 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,user_id,strlen(user_id)); 
@@ -329,14 +330,20 @@ static void append_self_message_record_frame(const gchar *message) {
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,space,strlen(space)); 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,message,strlen(message)); 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,wrap,strlen(wrap)); 
+
+    append_talk_record(_friend_name, user_id);
+    append_talk_record(_friend_name, user_says);
+    append_talk_record(_friend_name, space);
+    append_talk_record(_friend_name, message);
+    append_talk_record(_friend_name, wrap);
 }
 
 static void append_friend_message_record_frame(const char *friend_name, const char *message) {
     GtkTextIter end;
     gtk_text_buffer_get_end_iter(buffer_output, &end);
 
-    gchar *space="              ";
-    gchar *user_says=" says:\n";
+    gchar *space="    ";
+    gchar *user_says=" :\n";
     gchar *wrap="\n\n";
 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,friend_name,strlen(friend_name)); 
@@ -344,6 +351,12 @@ static void append_friend_message_record_frame(const char *friend_name, const ch
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,space,strlen(space)); 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,message,strlen(message)); 
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,wrap,strlen(wrap)); 
+
+    append_talk_record(_friend_name, friend_name);
+    append_talk_record(_friend_name, user_says);
+    append_talk_record(_friend_name, space);
+    append_talk_record(_friend_name, message);
+    append_talk_record(_friend_name, wrap);
 }
 
 static void button_event_send(GtkWidget *wiget,GtkWidget *user_id)
@@ -547,6 +560,11 @@ static GtkWidget* create_frame_chat_window(gchar*user_id)
     right_label();
     top_label(user_id);
     gtk_container_add(GTK_CONTAINER(window),fixed);
+    printf("r %s\n", get_talk_record(_friend_name));
+    GtkTextIter end;
+    gtk_text_buffer_get_end_iter(buffer_output, &end);
+    gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output),&end,get_talk_record(_friend_name),strlen(get_talk_record(_friend_name))); 
+
     return window;
 
 }

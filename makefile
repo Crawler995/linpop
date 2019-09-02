@@ -1,5 +1,6 @@
-linpop.out: data.o login_gui.o register_gui.o network.o friend_linked_list.o friend_interface.o chat_window.o
-	gcc -o linpop.out data.o login_gui.o register_gui.o network.o friend_linked_list.o friend_interface.o chat_window.o \
+linpop.out: data.o login_gui.o register_gui.o network.o friend_linked_list.o friend_interface.o chat_window.o talk_record.o
+	gcc -o linpop.out data.o login_gui.o register_gui.o network.o friend_linked_list.o \
+	friend_interface.o chat_window.o talk_record.o \
 	`pkg-config --cflags --libs gtk+-3.0 libmongoc-1.0` -lgthread-2.0
 
 data.o: data.c
@@ -22,6 +23,9 @@ friend_interface.o: friend_interface.c
 
 chat_window.o: chat_window.c
 	gcc -c -o chat_window.o chat_window.c `pkg-config --cflags --libs gtk+-3.0 libmongoc-1.0`-lgthread-2.0
+
+talk_record.o: talk_record.c
+	gcc -c -o talk_record.o talk_record.c `pkg-config --cflags --libs gtk+-3.0 libmongoc-1.0`-lgthread-2.0
 
 clean:
 	rm *.out *.o

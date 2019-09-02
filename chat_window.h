@@ -27,9 +27,9 @@ static const char *_friend_name;
 static const char *_friend_ip;
 static bool continue_recv_message;
 
-static int listenfd ;
-static int sockfd;
-static int connfd;
+static int listenfd = 0;
+static int sockfd = 0;
+static int connfd = 0;
 static bool is_connected;
 
 static const char *exit_message;
@@ -48,6 +48,7 @@ static void client_chat_frame();
 static void client_send();
 
 void create_chat_window(const char *self_name, const char *friend_name, const char *friend_ip, bool is_server);
+
 
 static void append_self_message_record_frame(const gchar *message);
 static void append_friend_message_record_frame(const char *friend_name, const char *message);

@@ -6,6 +6,7 @@
 
 #include "login_gui.h"
 #include "register_gui.h"
+#include "global_info.h"
 #include "data.h"
 #include "network.h"
 #include "friend_linked_list.h"
@@ -26,13 +27,21 @@ static void login_handle(GtkWidget *button, gpointer data) {
 
     if(!login_success) return;
     
-    global_login_user_name = username_text;
-    user_ip = get_self_ip_address();
+    global_login_user_name = (char*)malloc(sizeof(char) * 50);
+    strcpy(global_login_user_name, username_text);
+
+    user_ip = (char*)malloc(sizeof(char) * 50);
+    strcpy(user_ip, get_self_ip_address());
+
     set_user_ip_address(user_ip);
 
     set_user_online(true);
-    
-    create_friend_interface(program_argc, program_argv);
+    //gdk_threads_enter();
+    //g_thread_create((GThreadFunc)create_friend_interface, NULL, FALSE, NULL);
+    gtk_widget_hide(GTK_WIDGET(window));
+    destroy_window();
+    create_friend_interface();
+    //gdk_threads_leave();
 }
 
 static void register_handle(GtkWidget *button, gpointer data) {
@@ -79,12 +88,16 @@ static GtkWidget* initWindow() {
     return window;
 }
 
+void destroy_window() {
+    gtk_widget_destroy(window);
+}
+
 int main(int argc, char **argv) {
     program_argc = argc;
     program_argv = argv;
-
+    gdk_threads_init();
     gtk_init(&argc, &argv);
-    GtkWidget *window = initWindow();
+    window = initWindow();
 
     gtk_widget_show_all(window);
 

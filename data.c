@@ -7,6 +7,7 @@
 #include "data.h"
 #include "network.h"
 #include "login_gui.h"
+#include "global_info.h"
 #include "friend_linked_list.h"
 
 void connect_database() {

@@ -37,6 +37,6 @@ enum
     NUM_COLS
 } ;
 
-void create_friend_interface(int argc ,char **argv);
+void create_friend_interface();
 
 #endif

@@ -1,5 +1,6 @@
 #include "friend_interface.h"
 #include "data.h"
+#include "global_info.h"
 #include "chat_window.h"
 #include <pthread.h>
 
@@ -333,9 +334,10 @@ static void setNotListen() {
     listening = false;
 }
 
-void create_friend_interface ( int argc ,char **argv) {
+void create_friend_interface () {
     gdk_threads_init();
-    gtk_init(&argc,&argv);
+    int argc = 1;
+    gtk_init(&argc,NULL);
 
     init_window();
     gtk_widget_show_all(window);

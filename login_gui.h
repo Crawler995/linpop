@@ -12,10 +12,7 @@
 static int program_argc;
 static char **program_argv;
 
-const char *global_login_user_name;
-const char *user_ip;
-
-
+static GtkWidget *window;
 static GtkWidget *layout;
 static GtkWidget *login_label;
 static GtkWidget *username_label;
@@ -28,6 +25,7 @@ static GtkWidget *register_button;
 static void login_handle(GtkWidget *button, gpointer data);
 static void register_handle(GtkWidget *button, gpointer data);
 static GtkWidget* initWindow();
+static void destroy_window();
 
 
 #endif
