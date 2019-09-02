@@ -557,6 +557,7 @@ void create_chat_window(const char *self_name, const char *friend_name, const ch
     }
     else {
         printf("client\n");
+        //g_thread_create((GThreadFunc)client_chat_frame, NULL, FALSE, NULL);
         client_chat_frame();
         window=create_frame_chat_window(friend_name);
         gtk_widget_show_all(window);
