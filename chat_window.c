@@ -537,6 +537,8 @@ void create_chat_window(const char *self_name, const char *friend_name, const ch
     continue_recv_message = true;
     is_connected = false;
 
+    printf("%s\n", _friend_ip);
+
     exit_message = "b|y|e\n";
     recv_file_message = "f|i|l|e\n";
     finish_recv_file_message = "f|i|n|i|s|h|f|i|l|e\n";

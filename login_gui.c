@@ -27,7 +27,7 @@ static void login_handle(GtkWidget *button, gpointer data) {
     if(!login_success) return;
     
     global_login_user_name = username_text;
-    user_ip = program_argv[1];
+    user_ip = get_self_ip_address();
     set_user_ip_address(user_ip);
 
     set_user_online(true);
@@ -80,10 +80,6 @@ static GtkWidget* initWindow() {
 }
 
 int main(int argc, char **argv) {
-    if(argc != 2) {
-        printf("./linpop.out <Your School IP Address>\n");
-        return 0;
-    }
     program_argc = argc;
     program_argv = argv;
 
