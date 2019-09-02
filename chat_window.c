@@ -255,7 +255,7 @@ static void client_chat_frame()
     bzero(&servaddr , sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    if(inet_pton(AF_INET , "127.0.0.1" , &servaddr.sin_addr) < 0)
+    if(inet_pton(AF_INET , _friend_ip , &servaddr.sin_addr) < 0)
     {
         printf("inet_pton error for \n");
         exit(1);
