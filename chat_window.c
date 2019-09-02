@@ -20,6 +20,11 @@ const int LISTENQ = 6666;
 const int MAX_CONNECT = 20;
 
 static void stop_connection() {
+    if(!is_connected) {
+        printf("not con\n");
+        gtk_widget_destroy(window);
+        return;
+    }
     if(!continue_recv_message) return;
 
     printf("try stop\n");
@@ -61,6 +66,22 @@ static void *recv_message_server(void *fd)
             return;
 			//exit(1);
 		}//if
+        else if(strcmp(buf, recv_file_message) == 0) {
+            const char *save_file_url = "./ccc.docx";
+            FILE *file = fopen(save_file_url, "wb");
+            char buf[MAX_LINE];
+            int count;
+
+            while((count = recv(sockfd, buf, MAX_LINE, 0)) > 0) {
+                if(strcmp(buf, finish_recv_file_message) == 0) {
+                    break;
+                }
+                fwrite(buf, count, 1, file);
+            }
+
+            fclose(file);
+            printf("finish file\n");
+        }
 		printf("\nClient: %s\n", buf);
         gdk_threads_enter();
         append_friend_message_record_frame(_friend_name, buf);
@@ -97,6 +118,22 @@ static void *recv_message_client(void *fd)
             return;
 			//exit(0);
 		}//if
+        else if(strcmp(buf, recv_file_message) == 0) {
+            const char *save_file_url = "./ccc.docx";
+            FILE *file = fopen(save_file_url, "wb");
+            char buf[MAX_LINE];
+            int count;
+
+            while((count = recv(sockfd, buf, MAX_LINE, 0)) > 0) {
+                if(strcmp(buf, finish_recv_file_message) == 0) {
+                    break;
+                }
+                fwrite(buf, count, 1, file);
+            }
+
+            fclose(file);
+            printf("finish file\n");
+        }
 		printf("\nServer: %s\n", buf);
         gdk_threads_enter();
         append_friend_message_record_frame(_friend_name, buf);
@@ -149,9 +186,11 @@ static void server_chat_frame()
 
 	if((connfd = accept(listenfd , (struct sockaddr *)&cliaddr , &clilen)) < 0)
 	{
+        
 		perror("accept error.\n");
 		exit(1);
 	}//if
+    is_connected = true;
     printf("2\n");
 	printf("server: got connection from %s\n", inet_ntoa(cliaddr.sin_addr));
 	/*创建子线程处理该客户链接接收消息*/
@@ -223,9 +262,11 @@ static void client_chat_frame()
     /*(3) 发送链接服务器请求*/
     if( connect(sockfd , (struct sockaddr *)&servaddr , sizeof(servaddr)) < 0)
     {
+        
         perror("connect error");
         exit(1);
     }//if	
+    is_connected = true;
 	/*创建子线程处理该客户链接接收消息*/
 	if(pthread_create(&recv_tid , NULL , recv_message_client, &sockfd) == -1)
 	{
@@ -361,9 +402,43 @@ static void text_output()
     gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window_output),text_view_output);
     gtk_fixed_put(GTK_FIXED(fixed),scrolled_window_output,20,100);
 }
+
+static void button_send_file_callback(GtkWidget *widget,gpointer*data) {
+    printf("open file\n");
+    const char *file_url = "./项目文档.docx";
+
+    FILE *file = fopen(file_url, "rb");
+    if(!file) {
+        printf("open file failed\n");
+        return;
+    }
+    char buf[MAX_LINE];
+    strcpy(buf, recv_file_message);
+    if(_is_server) {
+        send(connfd, buf, MAX_LINE, 0);
+        int count;
+        while((count = fread(buf, 1, MAX_LINE, file)) > 0) {
+            send(connfd, buf, MAX_LINE, 0);
+        }
+        strcpy(buf, finish_recv_file_message);
+        send(connfd, buf, MAX_LINE, 0);
+    }
+    else {
+        send(sockfd, buf, MAX_LINE, 0);
+        int count;
+        while((count = fread(buf, 1, MAX_LINE, file)) > 0) {
+            send(sockfd, buf, MAX_LINE, 0);
+        }
+        strcpy(buf, finish_recv_file_message);
+        send(sockfd, buf, MAX_LINE, 0);
+    }
+
+    fclose(file);
+}
+
 static void button_send_cancel(gchar *user_id)
 {
-    static GtkWidget *button_send,*button_cancel;
+    static GtkWidget *button_send,*button_cancel, *button_send_file;
     button_send=gtk_button_new_with_label("SEND");
     g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(button_event_send), user_id);//confirm
 
@@ -381,6 +456,11 @@ static void button_send_cancel(gchar *user_id)
     gtk_fixed_put(GTK_FIXED(fixed), button_cancel, 0,0);
     gtk_fixed_move(GTK_FIXED(fixed), button_send, 485, 800);
     gtk_fixed_move(GTK_FIXED(fixed), button_cancel,550,800);
+
+    button_send_file=gtk_button_new_with_label("SEND FILE");
+    g_signal_connect(G_OBJECT(button_send_file), "clicked", G_CALLBACK(button_send_file_callback), NULL);//cancel
+    gtk_fixed_put(GTK_FIXED(fixed), button_send_file, 0,0);
+    gtk_fixed_move(GTK_FIXED(fixed), button_send_file, 350, 800);
 }
 
 static GtkWidget * create_imagetext_hbox(const char *image_path)
@@ -453,8 +533,11 @@ void create_chat_window(const char *self_name, const char *friend_name, const ch
     _friend_name = friend_name;
     _friend_ip = friend_ip;
     continue_recv_message = true;
+    is_connected = false;
 
     exit_message = "b|y|e\n";
+    recv_file_message = "f|i|l|e\n";
+    finish_recv_file_message = "f|i|n|i|s|h|f|i|l|e\n";
     
     if(is_server) {
         // pthread_t server_thread;

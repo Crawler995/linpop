@@ -30,8 +30,11 @@ static bool continue_recv_message;
 static int listenfd ;
 static int sockfd;
 static int connfd;
+static bool is_connected;
 
 static const char *exit_message;
+static const char *recv_file_message;
+static const char *finish_recv_file_message;
 static void stop_connection();
 
 static GtkWidget* create_frame_chat_window(gchar*user_id);
@@ -52,6 +55,7 @@ static void append_friend_message_record_frame(const char *friend_name, const ch
 static void button_ok_close(GtkWidget *widget,gpointer*data);
 static void button_event_send(GtkWidget *wiget,GtkWidget *user_id);
 static void button_event_cancel(GtkWidget *widget,gpointer*data);
+static void button_send_file_callback(GtkWidget *widget,gpointer*data);
 static void text_input();
 static void text_output();
 static void button_send_cancel(gchar *user_id);
