@@ -81,6 +81,7 @@ static void *recv_message_server(void *fd)
 
             fclose(file);
             printf("finish file\n");
+            continue;
         }
 		printf("\nClient: %s\n", buf);
         gdk_threads_enter();
@@ -119,7 +120,7 @@ static void *recv_message_client(void *fd)
 			//exit(0);
 		}//if
         else if(strcmp(buf, recv_file_message) == 0) {
-            const char *save_file_url = "./ccc.docx";
+            const char *save_file_url = "../ccc.docx";
             FILE *file = fopen(save_file_url, "wb");
             char buf[MAX_LINE];
             int count;
@@ -133,6 +134,7 @@ static void *recv_message_client(void *fd)
 
             fclose(file);
             printf("finish file\n");
+            continue;
         }
 		printf("\nServer: %s\n", buf);
         gdk_threads_enter();

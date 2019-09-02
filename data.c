@@ -114,6 +114,9 @@ const char* get_user_ip_address(const char *username) {
             return bson_iter_utf8(&it, &len);
         }
     } 
+
+    bson_destroy(query);
+    bson_destroy(opt);
 }
 
 const char *get_user_group(const char *username) {
@@ -180,7 +183,6 @@ friend_node* get_user_friend_list() {
     }
 
     bson_destroy(opt);
-    bson_destroy(doc);
     bson_destroy(query);
     mongoc_cursor_destroy (cursor);
 
@@ -310,7 +312,6 @@ const char* get_self_is_requested_talked() {
     }
 
     bson_destroy(opt);
-    bson_destroy(doc);
     bson_destroy(query);
     mongoc_cursor_destroy (cursor);
 
@@ -376,7 +377,6 @@ void add_talk_request(const char *friend_name) {
     mongoc_collection_update_one(talk_collection, query, update, NULL, NULL, NULL);
 
     bson_destroy(doc);
-    bson_destroy(doc1);
     bson_destroy(query);
     bson_destroy(update);
 }
@@ -436,13 +436,13 @@ void delete_talk_request(const char *request_user_name) {
     mongoc_collection_update_one(talk_collection, query, update, NULL, NULL, NULL);
 
     bson_destroy(doc);
-    bson_destroy(doc1);
     bson_destroy(query);
     bson_destroy(update);
 }
 
 void destory_database_connection() {
     mongoc_collection_destroy(collection);
+    mongoc_collection_destroy(talk_collection);
     mongoc_database_destroy(database);
     mongoc_client_destroy(client);
     mongoc_cleanup();
