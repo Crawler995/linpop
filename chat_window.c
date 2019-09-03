@@ -23,7 +23,15 @@ const int MAX_CONNECT = 20;
 static void stop_connection() {
     if(!is_connected) {
         printf("not con\n");
+        if(_is_server) {
+            close(listenfd);
+            close(connfd);
+        }
+        else {
+            close(sockfd);
+        }
         gtk_widget_destroy(window);
+        
         return;
     }
     if(!continue_recv_message) return;
@@ -31,9 +39,12 @@ static void stop_connection() {
     printf("try stop\n");
     if(_is_server) {
         send(connfd, exit_message, strlen(exit_message), 0);
+        close(connfd);
+        close(listenfd);
     }
     else {
         send(sockfd, exit_message, strlen(exit_message), 0);
+        close(sockfd);
     }
 
     
