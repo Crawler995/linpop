@@ -22,6 +22,8 @@ static GtkWidget *create_window;
 static gchar *text;
 static gchar user_id[50];
 
+static GtkWidget *button_send, *button_cancel, *button_send_file;
+
 static bool _is_server;
 static const char *_friend_name;
 static const char *_friend_ip;

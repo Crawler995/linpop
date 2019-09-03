@@ -524,11 +524,24 @@ static void button_send_file_callback(GtkWidget *widget, gpointer *data)
 
     printf("%s\n", file_url);
     FILE *file = fopen(file_url, "rb");
+
     if (!file)
     {
         printf("open file failed\n");
         return;
     }
+
+
+    fseek(file, 0, SEEK_END);
+    long total_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    gdouble rate = 0.0;
+    char rate_str[10];
+    sprintf(rate_str, "%.2lf", &rate);
+
+    gtk_button_set_label(GTK_BUTTON(button_send_file), rate_str);
+
     char buf[MAX_LINE];
     memset(buf, 0, MAX_LINE);
     strcpy(buf, recv_file_message);
@@ -540,9 +553,13 @@ static void button_send_file_callback(GtkWidget *widget, gpointer *data)
         while ((count = fread(buf, 1, MAX_LINE, file)) > 0)
         {
             send(connfd, buf, MAX_LINE, 0);
+            rate += 1.0 * MAX_LINE / total_size;
+            sprintf(rate_str, "%.2lf", rate);
+
+            gtk_button_set_label(GTK_BUTTON(button_send_file), rate_str);
             memset(buf, 0, MAX_LINE);
         }
-
+        //gtk_button_set_label(GTK_BUTTON(button_send_file), "SEND FILE");
         strcpy(buf, finish_recv_file_message);
         send(connfd, buf, MAX_LINE, 0);
     }
@@ -566,7 +583,6 @@ static void button_send_file_callback(GtkWidget *widget, gpointer *data)
 
 static void button_send_cancel(gchar *user_id)
 {
-    static GtkWidget *button_send, *button_cancel, *button_send_file;
     button_send = gtk_button_new_with_label("SEND");
     g_signal_connect(G_OBJECT(button_send), "clicked", G_CALLBACK(button_event_send), user_id); //confirm
 
@@ -629,7 +645,9 @@ static void right_label()
 
 static void top_label(gchar *user_id)
 {
-    GtkWidget *top_label_button = create_image_button("1.jpg");
+    char path[100];
+    sprintf(path, "./head_png/%s.png", _friend_name);
+    GtkWidget *top_label_button = create_image_button(path);
     GtkWidget *label_top = gtk_label_new("");
     char a[100] = "<span foreground='black' font_desc='26'>";
     strcat(a, _friend_name);
@@ -657,7 +675,7 @@ static GtkWidget *create_frame_chat_window(gchar *user_id)
     right_label();
     top_label(user_id);
     gtk_container_add(GTK_CONTAINER(window), fixed);
-    printf("r %s\n", get_talk_record(_friend_name));
+    // 加载聊天记录
     GtkTextIter end;
     gtk_text_buffer_get_end_iter(buffer_output, &end);
     gtk_text_buffer_insert(GTK_TEXT_BUFFER(buffer_output), &end, get_talk_record(_friend_name), strlen(get_talk_record(_friend_name)));
@@ -677,6 +695,10 @@ void create_chat_window(const char *self_name, const char *friend_name, const ch
     is_connected = false;
 
     printf("%s\n", _friend_ip);
+
+    char cmd[100];
+    sprintf(cmd, "./create_head md5 \"%s\" \"./head_png/%s.png\"", friend_name, friend_name);
+    system(cmd);
 
     exit_message = "b|y|e\n";
     recv_file_message = "f|i|l|e\n";

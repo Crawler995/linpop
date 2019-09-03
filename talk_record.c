@@ -16,10 +16,7 @@ void append_talk_record(const char *friend_name, const char *talk_record) {
         mkdir("talk_record", S_IRWXU); 
     }  
     char file_name[50];
-    strcpy(file_name, "./talk_record/");
-    strcat(file_name, global_login_user_name);
-    strcat(file_name, "|");
-    strcat(file_name, friend_name);
+    sprintf(file_name, "./talk_record/%s,%s.txt", global_login_user_name, friend_name);
 
     FILE *file = fopen(file_name, "a");
     fwrite(talk_record, strlen(talk_record) * sizeof(char), 1, file);
@@ -28,13 +25,11 @@ void append_talk_record(const char *friend_name, const char *talk_record) {
 
 const char* get_talk_record(const char *friend_name) {
     char file_name[50];
-    strcpy(file_name, "./talk_record/");
-    strcpy(file_name, global_login_user_name);
-    strcat(file_name, "|");
-    strcat(file_name, friend_name);
+    sprintf(file_name, "./talk_record/%s,%s.txt", global_login_user_name, friend_name);
     
     FILE *file = fopen(file_name, "r");
     if(!file) {
+        printf("empty\n");
         return "";
     }
     

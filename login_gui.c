@@ -12,6 +12,10 @@
 #include "friend_linked_list.h"
 #include "friend_interface.h"
 #include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>  
+#include <sys/stat.h>  
 
 static void login_handle(GtkWidget *button, gpointer data) {
     const gchar *username_text = gtk_entry_get_text(GTK_ENTRY(username_input));
@@ -36,6 +40,13 @@ static void login_handle(GtkWidget *button, gpointer data) {
     set_user_ip_address(user_ip);
 
     set_user_online(true);
+
+    if(access("./head_png/", F_OK)) {
+        mkdir("head_png", S_IRWXU); 
+    }
+    char cmd[100];
+    sprintf(cmd, "./create_head md5 \"%s\" \"./head_png/%s.png\"", username_text, username_text);
+    system(cmd);
     //gdk_threads_enter();
     //g_thread_create((GThreadFunc)create_friend_interface, NULL, FALSE, NULL);
     gtk_widget_hide(GTK_WIDGET(window));

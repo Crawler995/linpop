@@ -164,7 +164,7 @@ static GtkTreeModel *create_and_fill_model (void)
          GdkPixbuf *dest_pixbuf; 
           src_pixbuf = gdk_pixbuf_new_from_file(image_path, NULL); 
      //将src_pixbuf设置成屏幕大小 
-         dest_pixbuf = gdk_pixbuf_scale_simple(src_pixbuf, 120,120, GDK_INTERP_HYPER);
+         dest_pixbuf = gdk_pixbuf_scale_simple(src_pixbuf, 80,80, GDK_INTERP_HYPER);
      //从dest_pixbuf中读取图片存于image中 
          image = gtk_image_new_from_pixbuf(dest_pixbuf); 
          box = gtk_hbox_new (FALSE, 0);
@@ -225,7 +225,9 @@ static void init_window() {
      
        //左上头像
     button_head=gtk_button_new_with_label("touxiang ");
-    button_head=create_image_button(  "1.jpg");
+    char path[100];
+    sprintf(path, "./head_png/%s.png", global_login_user_name);
+    button_head=create_image_button(path);
     gtk_fixed_put(GTK_FIXED(fixed_head), button_head, 10,30);  //buttons position
     gtk_widget_set_size_request(GTK_WIDGET(button_head),100,70); //button size
      GtkWidget *button_add_tree=gtk_button_new_with_label("add tree ");
@@ -236,16 +238,16 @@ static void init_window() {
     g_signal_connect(G_OBJECT(button_add_friend), "clicked",  G_CALLBACK(button_add_friend_clicked), NULL);
 
     GtkWidget * label_name=gtk_label_new(global_login_user_name);
-    gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 120,30);
+    gtk_fixed_put(GTK_FIXED(fixed_head), label_name, 140,30);
     gtk_widget_set_size_request(label_name,10,40);
 
     sb_calls_self_label=gtk_label_new("now nobody calls you.");
-    gtk_fixed_put(GTK_FIXED(fixed_head), sb_calls_self_label, 120,50);
+    gtk_fixed_put(GTK_FIXED(fixed_head), sb_calls_self_label, 140,50);
     gtk_widget_set_size_request(sb_calls_self_label,10,40);
 
     GtkWidget * label_signature=gtk_label_new(user_ip);  //yinggai huanhangh
     gtk_label_set_line_wrap(GTK_LABEL(label_signature),TRUE);
-    gtk_fixed_put(GTK_FIXED(fixed_head), label_signature, 120,80);
+    gtk_fixed_put(GTK_FIXED(fixed_head), label_signature, 140,80);
     gtk_widget_set_size_request(label_signature,10,40);
     gtk_container_add(GTK_CONTAINER(window),fixed_head);
 }
