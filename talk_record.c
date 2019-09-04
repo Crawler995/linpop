@@ -1,4 +1,5 @@
 #include "talk_record.h"
+#include "global_info.h"
 // #include "login_gui.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +9,6 @@
 
 #include <sys/types.h>  
 #include <sys/stat.h>  
-
-const char *global_login_user_name = "zql";
 
 void append_talk_record(const char *friend_name, const char *talk_record) {
     if(access("./talk_record/", F_OK)) {
