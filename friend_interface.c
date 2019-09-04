@@ -204,7 +204,7 @@ static void init_window() {
     gtk_widget_set_size_request(GTK_WIDGET(vbox),300,500);
     view = gtk_tree_view_new();
     col = gtk_tree_view_column_new();
-    gtk_tree_view_column_set_title(col, "friend tree");
+    gtk_tree_view_column_set_title(col, "friend list");
     gtk_tree_view_append_column(GTK_TREE_VIEW(view), col);
     renderer = gtk_cell_renderer_text_new();
     gtk_tree_view_column_pack_start(col, renderer, TRUE);
@@ -230,7 +230,7 @@ static void init_window() {
     button_head=create_image_button(path);
     gtk_fixed_put(GTK_FIXED(fixed_head), button_head, 10,30);  //buttons position
     gtk_widget_set_size_request(GTK_WIDGET(button_head),100,70); //button size
-     GtkWidget *button_add_tree=gtk_button_new_with_label("add tree ");
+     GtkWidget *button_add_tree=gtk_button_new_with_label("add group ");
     gtk_fixed_put(GTK_FIXED(fixed_head),button_add_tree , 140,170);
     GtkWidget *button_add_friend=gtk_button_new_with_label("add friend ");
     gtk_fixed_put(GTK_FIXED(fixed_head),button_add_friend , 220,170);
