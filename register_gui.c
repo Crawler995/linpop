@@ -43,7 +43,8 @@ static void register_handle(GtkWidget *button, gpointer data) {
     gboolean security_pass = password_security_pass(password_text);
     gboolean username_not_exist = !find_user_in_database(username_text);
 
-    gboolean register_success = password_same && security_pass && username_not_empty && username_not_exist;
+    gboolean register_success = password_same && security_pass && username_not_empty &&
+        username_not_too_long && username_not_exist;
 
     gchar register_status_tip[50] = "注册成功！";
     if(!username_not_empty) strcpy(register_status_tip, "用户名不能为空！");
